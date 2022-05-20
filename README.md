@@ -68,7 +68,7 @@ For example, a token of `{local:source_institute}` used in a template on a stock
 - CV: Agronomy Ontology 
 - Accesion: AGRO:00000379
 - Definition: A person that has a role of collecting data related to the experiment.
-- URL: http://purl.obolibrary.org/obo/AGRO_00000379
+- URL: https://www.ebi.ac.uk/ols/ontologies/agro/terms?iri=http://purl.obolibrary.org/obo/AGRO_00000379
 - Usage: We associate this term with phenotypic data to indicate the researcher who collected the phenotypic data.
 
 ## Data Custodian
@@ -76,7 +76,7 @@ For example, a token of `{local:source_institute}` used in a template on a stock
 - CV: NCIT
 - Accession: NCIT:C165210
 - Definition: The person responsible for a specific data set.
-- URL: http://purl.obolibrary.org/obo/NCIT_C165210
+- URL: https://www.ebi.ac.uk/ols/ontologies/ncit/terms?iri=http://purl.obolibrary.org/obo/NCIT_C165210
 - Usage: We use this for the name of the PI for the grant funding this data.
 
 ## Data Release
@@ -84,7 +84,7 @@ For example, a token of `{local:source_institute}` used in a template on a stock
 - CV: NCIT
 - Accession: NCIT:C172217
 - Definition:The act of making data or other structured information accessible to the public or to the user group of a database.
-- URL: http://purl.obolibrary.org/obo/NCIT_C172217
+- URL: https://www.ebi.ac.uk/ols/ontologies/ncit/terms?iri=http://purl.obolibrary.org/obo/NCIT_C172217
 - Usage: We use this for the full text of an experiment-specific data release statement. We generally use the default Tripal "Chado Property" field to display this text above the citation if it's available.
 
 ## Data Source
@@ -92,7 +92,7 @@ For example, a token of `{local:source_institute}` used in a template on a stock
 - CV: NCIT
 - Accession: NCIT:C16493
 - Definition: The person or authoritative body who provided the information.
-- URL: http://purl.obolibrary.org/obo/NCIT_C16493
+- URL: https://www.ebi.ac.uk/ols/ontologies/ncit/terms?iri=http://purl.obolibrary.org/obo/NCIT_C16493
 - Usage: We use this to indicate the research group who provided the data to our Tripal site.
 
 ## Data Originator
@@ -100,7 +100,7 @@ For example, a token of `{local:source_institute}` used in a template on a stock
 - CV: NCIT
 - Accession: NCIT:C142490
 - Definition: The creating entity for each information element that identifies the source of the information capture in the electronic case report form for a clinical investigation. The source could be a person, computer system, device or instrument.
-- URL: http://purl.obolibrary.org/obo/NCIT_C142490
+- URL: https://www.ebi.ac.uk/ols/ontologies/ncit/terms?iri=http://purl.obolibrary.org/obo/NCIT_C142490
 - Usage: We use this to indicate the person who generated the data through analysis. This applies to genotypic data for example.
 
 ## Curator
@@ -108,6 +108,6 @@ For example, a token of `{local:source_institute}` used in a template on a stock
 - CV: NCIT
 - Accession: NCIT:C69141
 - Definition: The person in charge of the care and superintendence of something, especially a collection.
-- URL: http://purl.obolibrary.org/obo/NCIT_C69141
+- URL: https://www.ebi.ac.uk/ols/ontologies/ncit/terms?iri=http://purl.obolibrary.org/obo/NCIT_C69141
 - Usage: We use this to indicate data that was specifically curated. Both the specific persons name and the team is indicated. For example, "Ruobin Liu, KnowPulse Curation Team".
 
