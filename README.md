@@ -8,14 +8,50 @@ Make a field available for most Tripal Content Types to provide an easily copy/p
 
 ## Current Data of focus
 
-- Phenotypic data
-- Genotypic data
-- Studies, Experiments
-- Sequence Variants
-- Genetic Markers
-- Genetic Maps
-- Genome Assemblies
-- Germplasm
+- Phenotypic data: citation is on the experiment (chado.project-based) + trait (chado.cvterm-based) page the data is associated with (no phenotypic data pages)
+- Genotypic data: citation is on the experiment page the data is associated with (no genotypic data pages).
+- Studies, Experiments: clearly it's on these pages directly as they are chado.project-based.
+- Sequence Variants: on the chado.feature-based sequence variant page but pulls information from the associated project/analysis record.
+- Genetic Markers: on the chado.feature-based genetic marker page but pulls information from the associated project/analysis record.
+- Genetic Maps: on the chado.featuremap-based genetic map page page but pulls information from the associated project/analysis record.
+- Genome Assemblies: on the chado.analysis-based genome assembly page and properties are associated with the analysis.
+- Germplasm: on the chado.stock-based germplasm pages and properties are associated with the specific germplasm.
+
+## How the field is configured
+
+Each instance of the field will have a field formatter settings which can be accessed through the cog button on the manage display page. This settings form will include 
+- a large textarea where the admin can enter a template with tokens to be used if there is no associated publication. The tokens are denoted with curley braces (i.e. `{accession)`) used will be replaced with the value of the indicated chado property. 
+- a date configuration form element to specify configuration of the `{CURRENT_DATE}` token.
+- a checkbox to indicate if a publication should be the preferred citation if available. Default is TRUE.
+
+There are a few generic, non-cvterm associated tokens as follows:
+- `{CURRENT_URL}`: the full URL of the page the citation is displayed on
+- `{CURRENT_DATE}`: the current date. Formatting of the date will be specified in the field formatter settings separately from the template.
+
+Example Template:
+
+> {local:authors} ({NCIT:date}) Unpublished Phenotypic data for {loca:genus} species. Data collected by {AGRO:00000379}, {local:research group} and funded by {local:funder_name}. Data was accessed from KnowPulse ({CURRENT_URL}) on {CURRENT_DATE}. All rights retained by the original authors.
+
+### How the citation is generated
+
+1. Check if the token is one of the supported generic, non-cvterm associated tokens and replace accordingly.
+2. If the field instance has the "Publication Preferred" checkbox checked then:
+
+    - check for a publication connection table for the current chado record and if it exists, check for a publication associated with this chado record.
+    - check for a project connection table for the current chado record and if it exists, check for a project associated with this chado record and use it's publication if available.
+    - check for an analysis connection table for the current chado record and if it exists, check for an analysis associated with this chado record and use it's publication if available.
+
+3. Use the configured template to generate a citation based on chado properties. Replace tokens based on the following priority:
+
+    - replace any tokens that match properties associated with the current chado record.
+    - find an associated project, check for any remaining tokens that match properties associated with the project.
+    - find an associated analysis, check for any remaining tokens that match properties associated with the analysis.
+    - any remaining un-replaced tokens should be replaced with `[MISSING INFORMATION: cvterm.name]` if the cvterm exists OR `[MISSING INFORMATION]` if the cvterm doesn't exist at all. In this last case a Tripal warning should also be added to the logs that indicates the missing data so that administrators can provide it.
+
+
+#### Tokens
+
+For example, a token of `{local:source_institute}` used in a template on a stock-based germplasm page would be replaced with the chado.stockprop.value for the property with a type_id referencing the `local:source_institute` cvterm (i.e. db.name = 'local', dbxref.accession = 'source_institute'). If there is more then one property referencing the specified term then they will be ordered by the stockprop.rank and comma-separated.
 
 ## Terms of Interest
 
