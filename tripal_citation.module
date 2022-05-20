@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * @file
+ * General functions relating to this module.
+ */
+ 
+ // Prepare term used by citation field.
+ module_load_include('inc', 'tripal_citation', 'includes/TripalFields/tripal_citation.fields');
+
+/**
+ * Implements hook_menu().
+ */
+function tripal_citation_menu() {
+  $items = [];
+  
+  // Configuration.
+  $items['admin/tripal/extension/tripal_citation/configure'] = array(
+    'title' => 'Configure Tripal Citation',
+    'description' => 'Tripal Fields specific to providing automated citations for data based on properties + publications',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tripal_citation_configure'),
+    'access arguments' => array('access administration pages'),
+    'file' => 'includes/forms/tripal_citation.configure.form.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}

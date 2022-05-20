@@ -1,0 +1,6 @@
+name = Tripal Citation
+description = Tripal Fields specific to providing automated citations for data based on properties + publications
+package = Tripal Extensions
+core = 7.x
+dependencies[] = tripal
+dependencies[] = tripal_chado
