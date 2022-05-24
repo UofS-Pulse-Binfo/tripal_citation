@@ -1,0 +1,70 @@
+/**
+ * @file
+ * Style citation.
+ */
+
+#tripal-citation-cite {
+  display: block;
+  position: relative;
+  margin: 20px 0;
+}
+
+/* APPEARANCE: */
+
+/* Smart Citation */
+.tripal-citation-style-smart {
+  background: #F7F7F7;
+  border-left: 1px solid #BBBBBB;
+  font-style: italic;
+  margin: 1.5em 0;
+  padding: 0.5em 10px;
+}
+
+.tripal-citation-style-smart:before {                                     
+  color: #BBBBBB;
+  content: "\201C";
+  font-size: 3em;
+  line-height: 0.1em;
+  margin-right: 0.2em;
+  vertical-align: -.4em;
+}
+
+.tripal-citation-style-smart:after {                                     
+  color: #BBBBBB;
+  content: "\201D";
+  font-size: 3em;
+  line-height: 0.1em;
+  vertical-align: -.45em;
+}
+
+
+/* Banner Citation */
+.tripal-citation-style-banner {
+  background: #F7F7F7;
+  border: 1px solid #BBBBBB;
+  font-style: italic;
+  margin: 1.5em 0;
+  padding: 0.5em 10px;
+}
+
+
+/* Simple Citataion */
+.tripal-citation-style-simple {
+  font-style: italic;
+  margin: 0;
+  padding: 0.5em;
+}
+
+
+/* CONTROLS: */
+
+/* Copy control */
+.tripal-citation-control-copy {
+  background: url(../images/tripal-citation-icon-copy.png) center no-repeat;
+  cursor: pointer;
+  height: 15px;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 15px;
+}

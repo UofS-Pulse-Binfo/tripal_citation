@@ -4,3 +4,4 @@ package = Tripal Extensions
 core = 7.x
 dependencies[] = tripal
 dependencies[] = tripal_chado
+configure = admin/tripal/extension/tripal_citation/configure

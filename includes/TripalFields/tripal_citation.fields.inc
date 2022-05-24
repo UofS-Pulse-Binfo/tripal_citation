@@ -33,7 +33,8 @@
  */
 function rawpheno_bundle_fields_info($entity_type, $bundle) {
   $fields = array();
-
+  
+  /*
   // IN GERMPLASM PAGE ONLY:
   if (isset($bundle->data_table) AND ($bundle->data_table == 'stock')) {
     // Insert auxiliary terms used by Raw Data field.
@@ -72,6 +73,7 @@ function rawpheno_bundle_fields_info($entity_type, $bundle) {
       ),
     );
   }
+  */
 
   return $fields;
 }
@@ -99,6 +101,7 @@ function rawpheno_bundle_fields_info($entity_type, $bundle) {
  *   create an instance of an already existing field.
  */
 function rawpheno_bundle_instances_info($entity_type, $bundle) {
+  /*
   $instances = array();
 
   // IN GERMPLASM PAGE ONLY:
@@ -135,6 +138,7 @@ function rawpheno_bundle_instances_info($entity_type, $bundle) {
       ),
     );
   }
+  */
   
   return $instances;
 }

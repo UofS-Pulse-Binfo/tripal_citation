@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file 
+ * Main install.
+ */
+
+ /**
+ * Implements hook_enable().
+ */
+function tripal_citation_enable() {
+  // Prepare system variables:
+
+  // Appearance/styling of citations.
+  // Default style to smart citations. 
+  // Other style
+  // @see configuration.
+  variable_set('tripal_citation_appearance', 'smart');
+
+  // Controls available in a citation.
+  // Copy citation icon is set to show by default.
+  // @see configuration.
+  variable_set('tripal_citation_control', 'copy');
+}
