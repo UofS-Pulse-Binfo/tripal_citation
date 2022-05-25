@@ -50,7 +50,7 @@ class ncit__citation extends TripalField {
   // required for all TripalFields.
   public static $default_instance_settings = array(
     // The short name for the vocabulary (e.g. schema, SO, GO, PATO, etc.).
-    'term_vocabulary' => 'NCIT',
+    'term_vocabulary' => 'ncit',
     // The name of the term.
     'term_name' => 'citation',
     // The unique ID (i.e. accession) of the term.
@@ -111,6 +111,47 @@ class ncit__citation extends TripalField {
   public function load($entity) {
     $field_name = $this->instance['field_name'];
 
+    $table_name = $entity->chado_record->tablename;
+    $table_prop = $table_name . 'prop';
+    $table_id   = $table_name . '_id';
+    $record_id  = $entity->chado_record->{$table_id};
+    
+    $template = "{project_property:Project Description} LOREM IPSUM DOLOR SIT AMET {GCP germplasm ontology:germplasm}. 
+      Data was accessed from KnowPulse ({CURRENT_URL}) on {CURRENT_DATE}. All rights retained by the original authors.";
+
+
+    // Get all tokens and locate values in the prop table.
+    preg_match_all('/{(.*?)}/', $template, $match);
+    $tokens = $match[1];
+
+    // Store all cvterms as typeids used to match type_id column in a prop table.
+    $type_ids = array();
+    foreach($tokens as $token) {
+      list($cv, $cvterm) = explode(':', $token);
+
+      if ($cv && $cvterm) {
+        $term = tripal_get_cvterm(
+          array('name' => $cvterm, 'cv_id' => array('name' => $cv))
+        );
+        
+        if ($term) {
+          $type_ids[ $term->cvterm_id ] = array($cv => $cvterm);
+        }
+      }      
+    }
+    
+    if ($type_ids) {
+      // Query all items that makeup the citation.
+      $sql = "SELECT type_id, value FROM {%s} WHERE type_id IN (:type_ids) AND %s = :table_id ORDER BY type_id ASC";
+      $query = chado_query(sprintf($sql, $table_prop, $table_id), 
+        array(':type_ids' => array_keys($type_ids), ':table_id' => $record_id)
+      );
+
+      if ($query->rowCount() > 0) {
+        $data = $query->fetchAllKeyed(0, 1);
+      }
+    }
+
     // Set some defaults for the empty record.
     $entity->{$field_name}['und'][0] = array(
       'value' => array(),
@@ -118,7 +159,8 @@ class ncit__citation extends TripalField {
 
 
     $entity->{$field_name}['und'][0] = array(
-      'ncit:citation' => 'abc'
+      'ncit:citation' => $data,
+      'hydra:member'  => $type_ids
     );
   }
 

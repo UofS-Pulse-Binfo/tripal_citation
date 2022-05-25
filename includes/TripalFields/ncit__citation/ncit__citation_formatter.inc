@@ -38,13 +38,15 @@ class ncit__citation_formatter extends TripalFieldFormatter {
    *    hook_field_formatter_view() function.
    */
   public function view(&$element, $entity_type, $entity, $langcode, $items, $display) {
-    $content = $items[0]['ncit:citation'];
-
-    $element[0] = array(
-      '#type' => 'markup',
-      '#markup' => $content,
-    );
-
+    $content = $items[0];
+    
+    if ($items[0]['value']) {
+      $element[0] = array(
+        '#type' => 'markup',
+        '#markup' => $content,
+      );
+    }
+    
     return $element;
   }
 
@@ -88,7 +90,7 @@ class ncit__citation_formatter extends TripalFieldFormatter {
    *
    **/
   public function settingsSummary($view_mode) {
-    $display = $this->instance['display'][$view_mode];
+    $display = $this->instance['display'][ $view_mode ];
     $settings = $display['settings'];
 
     // Translate value of prefer publication to yes or no.

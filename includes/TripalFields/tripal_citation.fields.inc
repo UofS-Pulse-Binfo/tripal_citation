@@ -31,14 +31,14 @@
  *   doesn't already exist. To trigger create of fields when developing call
  *   tripal_refresh_bundle_fields() for the specific bundle.
  */
-function ncit_citation_bundle_fields_info($entity_type, $bundle) {
+function tripal_citation_bundle_fields_info($entity_type, $bundle) {
   $fields = array();
   
   // NCIT citation.
   tripal_insert_cvterm(array(
-    'id' => 'NCIT:citation',
+    'id' => 'ncit:citation',
     'name' => 'citation',
-    'cv_name' => 'NCIT',
+    'cv_name' => 'ncit',
     'definition' => 'Provide automated citations for data. Used in Tripal Citation Field.',
   ));
 
@@ -79,7 +79,7 @@ function ncit_citation_bundle_fields_info($entity_type, $bundle) {
  *   for any settings you use in your field. Each entry in this array will be used to
  *   create an instance of an already existing field.
  */
-function ncit_citation_bundle_instances_info($entity_type, $bundle) {
+function tripal_citation_bundle_instances_info($entity_type, $bundle) {
   $instances = array();
 
   $field_name = 'ncit__citation';
@@ -92,7 +92,7 @@ function ncit_citation_bundle_instances_info($entity_type, $bundle) {
     'description' => 'Provide automated citations for data',
     'required' => FALSE,
     'settings' => array(
-      'term_vocabulary' => 'NCIT',
+      'term_vocabulary' => 'ncit',
       'term_name' => 'citation',
       'term_accession' => 'citation',
       'auto_attach' => FALSE,
