@@ -1,23 +1,25 @@
 /**
- * Export to data for Helium script.
+ * @file 
+ * Script containing events from configuration form.
  */
 
- (function ($) {
+(function ($) {
   Drupal.behaviors.scriptStyleCitation = {
     attach: function (context, settings) {   
-    
-    // Load styling when style is selected.
-    $('#tripal-citation-select-style').change(function() {
-      var newClass = 'tripal-citation-style-' + $(this).val();
 
-      $('#tripal-citation-cite div:first-child').attr('class', newClass);
-    });
-
-    // Show copy citation icon.
-    $('#tripal-citation-checkbox-copy').click(function() {
-      var addCopyClass = ($(this).is(':checked')) 
-        ? 'tripal-citation-control-copy' : 'tripal-citation-control-none';
+      // Load styling when style is selected.
+      $('#tripal-citation-select-style').change(function() {
+        var newClass = 'tripal-citation-style-' + $(this).val();
       
-      $('#tripal-citation-control').attr('class', addCopyClass);
-    });
+        // Apply style only to first instance of citation.
+        $('.tripal-citation-cite').eq(0)
+          .find('div').eq(0).attr('class', newClass);
+      });
+
+      // Select field value when title field is selected.
+      $('#tripal-citation-text-title').click(function() {
+        if ($(this).val()) {
+          $(this).select();
+        }
+      });
 }};}(jQuery));

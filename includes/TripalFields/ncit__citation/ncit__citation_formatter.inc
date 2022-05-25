@@ -1,18 +1,12 @@
 <?php
 /**
  * @class
- * Purpose: Provide a quick search on entity pages which submits/redirects to a full search.
+ * Purpose: Provide automated citations for data.
  *
  * Display: A simple textfield search form.
  * Configuration:
- *   - path to the full search.
- *   - the URL token (query parameter) the value applies to.
- *   - help text.
- *   - textfield placeholder.
- *   - search button text.
- *   - autocomplete path.
  */
-class ncit__raw_data_formatter extends TripalFieldFormatter {
+class ncit__citation_formatter extends TripalFieldFormatter {
   // The default label for this field.
   public static $default_label = 'Tripal Citation';
 
@@ -44,6 +38,69 @@ class ncit__raw_data_formatter extends TripalFieldFormatter {
    *    hook_field_formatter_view() function.
    */
   public function view(&$element, $entity_type, $entity, $langcode, $items, $display) {
+    $content = $items[0]['ncit:citation'];
+
+    $element[0] = array(
+      '#type' => 'markup',
+      '#markup' => $content,
+    );
 
     return $element;
   }
+
+
+  /**
+   * @see TripalFieldFormatter::settingsForm()
+   *
+   **/
+  public function settingsForm($view_mode, $form, &$form_state) {
+    $element = parent::settingsForm($view_mode, $form, $form_state);
+    
+    $display = $this->instance['display'][$view_mode];
+    $settings = $display['settings'];
+
+    // Citation template - text and tokens.
+    $element['template'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Citation Template'),
+      '#default_value' => $settings['template'],
+    );
+    
+    // Date token default to CURRENT_DATE.
+    $element['date'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Date Token'),
+      '#default_value' => $settings['date'],
+    );
+    
+    // Use publication when available as citation.
+    $element['prefer_publication'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Prefer publication as citation (when available)'),
+      '#default_value' => $settings['prefer_publication'],
+    );
+
+    return $element;
+  }
+
+  /**
+   * @see TripalFieldFormatter::settingsSummary()
+   *
+   **/
+  public function settingsSummary($view_mode) {
+    $display = $this->instance['display'][$view_mode];
+    $settings = $display['settings'];
+
+    // Translate value of prefer publication to yes or no.
+    $prefer_publication = ($settings['prefer_publication']) ? 'yes' : 'no';
+
+    $summary = t('<strong>Citation Template</strong> @template<br /><strong>Date Token</strong> @date<br /><strong>Prefer Publication</strong> @prefer_publication',
+      array(
+        '@template' => $settings['template'],
+        '@date' => $settings['date'],
+        '@prefer_publication' => $prefer_publication
+    ));
+
+    return $summary;
+  }
+}

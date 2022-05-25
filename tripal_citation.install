@@ -13,12 +13,19 @@ function tripal_citation_enable() {
 
   // Appearance/styling of citations.
   // Default style to smart citations. 
-  // Other style
+  // Other style banner and simple.
   // @see configuration.
   variable_set('tripal_citation_appearance', 'smart');
 
+  // Appearance/title text.
+  // Default title to empty - no title text. 
+  // @see configuration.
+  variable_set('tripal_citation_title', '');
+
+  
   // Controls available in a citation.
-  // Copy citation icon is set to show by default.
+  // Copy citation icon is set to copy by default.
+  // none - to show no control.
   // @see configuration.
   variable_set('tripal_citation_control', 'copy');
 }

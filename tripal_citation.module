@@ -5,6 +5,9 @@
  * The main functionality for this module.
  */
 
+// Prepare term used by field.
+module_load_include('inc', 'tripal_citation', 'includes/TripalFields/tripal_citation.fields');
+
 function tripal_citation_menu() {
   // Configure Tripal Citation.
   $items['admin/tripal/extension/tripal_citation/configure'] = array(
@@ -14,6 +17,21 @@ function tripal_citation_menu() {
     'access arguments' => array('administer tripal'),
     'file' => 'includes/forms/tripal_citation_configure.inc',
     'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ * Theme citations.
+ */
+function tripal_citation_theme($existing, $type, $theme, $path) {
+  // Rawdata page.
+  $items['tripal_citation_citation'] = array(
+    'template' => 'tripal_citation_citation',
+    'path' => $path . '/theme',
+    'variables' => array()
   );
 
   return $items;

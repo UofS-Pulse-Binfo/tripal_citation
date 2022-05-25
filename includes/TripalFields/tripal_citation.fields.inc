@@ -31,49 +31,28 @@
  *   doesn't already exist. To trigger create of fields when developing call
  *   tripal_refresh_bundle_fields() for the specific bundle.
  */
-function rawpheno_bundle_fields_info($entity_type, $bundle) {
+function ncit_citation_bundle_fields_info($entity_type, $bundle) {
   $fields = array();
   
-  /*
-  // IN GERMPLASM PAGE ONLY:
-  if (isset($bundle->data_table) AND ($bundle->data_table == 'stock')) {
-    // Insert auxiliary terms used by Raw Data field.
-    // Create cv to hold terms.
-    $cv = 'phenotype_customfield_terms';
-    chado_insert_cv($cv, 'vocabulary term to hold terms used by Raw Data field');
-    
-    // Insert terms to cv above.
-    $terms = array('experiment', 'id', 'location', 'name', 'summary', 'trait', 'user_experiment');
-    foreach($terms as $term) {
-      tripal_insert_cvterm(array(
-        'id' => 'rawpheno_tripal:' . $term,
-        'name' => $term,
-        'definition' => $term,
-        'cv_name' => $cv
-      ));
-    }
+  // NCIT citation.
+  tripal_insert_cvterm(array(
+    'id' => 'NCIT:citation',
+    'name' => 'citation',
+    'cv_name' => 'NCIT',
+    'definition' => 'Provide automated citations for data. Used in Tripal Citation Field.',
+  ));
 
-    // Raw Data term.
-    tripal_insert_cvterm(array(
-      'id' => 'NCIT:C142663',
-      'name' => 'Raw Data',
-      'cv_name' => 'NCIT',
-      'definition' => 'The original information, collected from the primary source. Used in Germplasm Raw Phenotypes Field.',
-    ));
-
-    $field_name = 'ncit__raw_data';
-    $field_type = 'ncit__raw_data';
-    $fields[$field_name] = array(
-      'field_name' => $field_name,
-      'type' => $field_type,
-      'cardinality' => 1,
-      'locked' => FALSE,
-      'storage' => array(
-	      'type' => 'field_chado_storage',
-      ),
-    );
-  }
-  */
+  $field_name = 'ncit__citation';
+  $field_type = 'ncit__citation';
+  $fields[$field_name] = array(
+    'field_name' => $field_name,
+    'type' => $field_type,
+    'cardinality' => 1,
+    'locked' => FALSE,
+    'storage' => array(
+	    'type' => 'field_chado_storage',
+    ),
+  );
 
   return $fields;
 }
@@ -100,45 +79,43 @@ function rawpheno_bundle_fields_info($entity_type, $bundle) {
  *   for any settings you use in your field. Each entry in this array will be used to
  *   create an instance of an already existing field.
  */
-function rawpheno_bundle_instances_info($entity_type, $bundle) {
-  /*
+function ncit_citation_bundle_instances_info($entity_type, $bundle) {
   $instances = array();
 
-  // IN GERMPLASM PAGE ONLY:
-  if (isset($bundle->data_table) AND ($bundle->data_table == 'stock')) {
-    // Number of Values Recorded.
-    $field_name = 'ncit__raw_data';
-    $field_type = 'ncit__raw_data';
-    $instances[$field_name] =  array(
-      'field_name' => $field_name,
-      'entity_type' => $entity_type,
-      'bundle' => $bundle->name,
-      'label' => 'Germplasm Raw Phenotypes',
-      'description' => 'Field to add interface to raw phenotypes available to a germplasm.',
-      'required' => FALSE,
-      'settings' => array(
-        'term_vocabulary' => 'NCIT',
-        'term_name' => 'Raw Data',
-        'term_accession' => 'C142663',
-        'auto_attach' => FALSE,
-        'chado_table' => $bundle->data_table,
-        'chado_column' => $bundle->data_table . '_id',
-        'base_table' => $bundle->data_table,
-      ),
-      'widget' => array(
-        'type' => 'ncit__raw_data_widget',
-        'settings' => array(),
-      ),
-      'display' => array(
-        'default' => array(
-          'label' => 'hidden',
-          'type' => 'ncit__raw_data_formatter',
-          'settings' => array(),
+  $field_name = 'ncit__citation';
+  $field_type = 'ncit__citation';
+  $instances[$field_name] =  array(
+    'field_name' => $field_name,
+    'entity_type' => $entity_type,
+    'bundle' => $bundle->name,
+    'label' => 'Tripal Citation',
+    'description' => 'Provide automated citations for data',
+    'required' => FALSE,
+    'settings' => array(
+      'term_vocabulary' => 'NCIT',
+      'term_name' => 'citation',
+      'term_accession' => 'citation',
+      'auto_attach' => FALSE,
+      'chado_table' => $bundle->data_table,
+      'chado_column' => $bundle->data_table . '_id',
+      'base_table' => $bundle->data_table,
+    ),
+    'widget' => array(
+      'type' => 'ncit__citation_widget',
+      'settings' => array(),
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'type' => 'ncit__citation_formatter',
+        'settings' => array(
+          'template' => '',
+          'date' => '{CURRENT_DATE}',
+          'prefer_publication' => 1
         ),
       ),
-    );
-  }
-  */
+    ),
+  );
   
   return $instances;
 }

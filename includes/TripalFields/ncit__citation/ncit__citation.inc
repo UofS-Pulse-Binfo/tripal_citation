@@ -1,7 +1,7 @@
 <?php
 /**
  * @class
- * Purpose: Provide quick browse functionality for entity pages
+ * Purpose: Provide automated citations for data.
  *
  * Data: No data.
  * Assumptions:
@@ -17,13 +17,13 @@ class ncit__citation extends TripalField {
   // The default label for this field.
   public static $default_label = 'Tripal Citation';
   // The default description for this field.
-  public static $default_description = 'Tripal Fields specific to providing automated citations for data based on properties + publications';
+  public static $default_description = 'Tripal Field specific to providing automated citations for data based on properties + publications';
   // The default widget for this field.
   public static $default_widget = 'ncit__citation_widget';
   // The default formatter for this field.
   public static $default_formatter = 'ncit__citation_formatter';
   // The module that manages this field.
-  public static $module = 'rawphenotypes';
+  public static $module = 'tripal_citation';
 
   // A list of global settings. These can be accessed within the
   // globalSettingsForm.  When the globalSettingsForm is submitted then
@@ -109,54 +109,37 @@ class ncit__citation extends TripalField {
    *   value of the field.
    */
   public function load($entity) {
-    
-  }
+    $field_name = $this->instance['field_name'];
 
-  /**
-   * Provides a form for the 'Field Settings' of an instance of this field.
-   *
-   * This function corresponds to the hook_field_instance_settings_form()
-   * function of the Drupal Field API.
-   *
-   * Validation of the instance settings form is not supported by Drupal, but
-   * the TripalField class does provide a mechanism for supporting validation.
-   * To allow for validation of your setting form you must call the parent
-   * in your child class:
-   *
-   * @code
-   *   $element = parent::instanceSettingsForm();
-   * @endcode
-   *
-   * Please note, the form generated with this function does not easily
-   * support AJAX calls in the same way that other Drupal forms do.  If you
-   * need to use AJAX you must manually alter the $form in your ajax call.
-   * The typical way to handle updating the form via an AJAX call is to make
-   * the changes in the form function itself but that doesn't work here.
-   */
-  public function instanceSettingsForm() {
-
-    // Retrieve the current settings.
-    // If this field was just created these will contain the default values.
-    $settings = $this->instance['settings'];
-
-    // Allow the parent Tripal Field to set up the form element for us.
-    $element = parent::instanceSettingsForm();
-
-    return $element;
-  }
-
-  /**
-   * @see ChadoField::elementInfo()
-   *
-   */
-  public function elementInfo() {
-    $field_term = $this->getFieldTermID();
-    return array(
-      $field_term => array(
-        'operations' => array('eq', 'ne', 'contains', 'starts'),
-        'sortable' => TRUE,
-        'searchable' => TRUE,
-      ),
+    // Set some defaults for the empty record.
+    $entity->{$field_name}['und'][0] = array(
+      'value' => array(),
     );
+
+
+    $entity->{$field_name}['und'][0] = array(
+      'ncit:citation' => 'abc'
+    );
+  }
+
+  /**
+   * @see TripalField::elementInfo()
+   *
+   **/
+  public function elementInfo() {
+  }
+
+  /**
+   * @see TripalField::query()
+   *
+   **/
+  public function query($query, $condition) {
+  }
+
+  /**
+  * @see TripalField::queryOrder()
+  *
+  **/
+  public function queryOrder($query, $order) {
   }
 }

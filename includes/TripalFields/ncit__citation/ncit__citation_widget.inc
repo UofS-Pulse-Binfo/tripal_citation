@@ -7,7 +7,7 @@
  * Data:
  * Assumptions:
  */
-class ncit__raw_data_widget extends TripalFieldWidget {
+class ncit__citation_widget extends TripalFieldWidget {
 
   // The default label for this field.
   public static $default_label = 'No Edits';
@@ -16,29 +16,25 @@ class ncit__raw_data_widget extends TripalFieldWidget {
   public static $field_types = array('ncit__citation');
 
  
- /**
-  * @see TripalFieldWidget::form()
-  *
-  **/
-
+  /**
+   * @see TripalFieldWidget::form()
+   *
+   **/
   public function form(&$widget, &$form, &$form_state, $langcode, $items, $delta, $element) {
     parent::form($widget, $form, $form_state, $langcode, $items, $delta, $element);
   }
 
-  
- /**
-  * @see TripalFieldWidget::validate()
-  *
-  **/
-  public function validate($element, $form, &$form_state, $langcode, $delta) {
-  }
+  /**
+   * @see TripalFieldWidget::validate()
+   *
+   **/
+   public function validate($element, $form, &$form_state, $langcode, $delta) {
+   }
 
-  
- /**
-  * @see TripalFieldWidget::submit()
-  *
+  /**
+   * @see TripalFieldWidget::submit()
+   *
   **/
   public function submit($form, &$form_state, $entity_type, $entity, $langcode, $delta) {
   }
-
 }
