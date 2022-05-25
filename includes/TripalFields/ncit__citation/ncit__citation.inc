@@ -83,7 +83,7 @@ class ncit__citation extends TripalField {
   // the user but otherwise provides no data.
   public static $no_data = TRUE;
 
- /**
+  /**
    * Loads the field values from the underlying data store.
    *
    * @param $entity
@@ -110,58 +110,33 @@ class ncit__citation extends TripalField {
    */
   public function load($entity) {
     $field_name = $this->instance['field_name'];
+    $entity->{$field_name}['und'][0]['value'] = array();
 
     $table_name = $entity->chado_record->tablename;
     $table_prop = $table_name . 'prop';
     $table_id   = $table_name . '_id';
     $record_id  = $entity->chado_record->{$table_id};
     
-    $template = "{project_property:Project Description} LOREM IPSUM DOLOR SIT AMET {GCP germplasm ontology:germplasm}. 
-      Data was accessed from KnowPulse ({CURRENT_URL}) on {CURRENT_DATE}. All rights retained by the original authors.";
-
-
-    // Get all tokens and locate values in the prop table.
-    preg_match_all('/{(.*?)}/', $template, $match);
-    $tokens = $match[1];
-
-    // Store all cvterms as typeids used to match type_id column in a prop table.
-    $type_ids = array();
-    foreach($tokens as $token) {
-      list($cv, $cvterm) = explode(':', $token);
-
-      if ($cv && $cvterm) {
-        $term = tripal_get_cvterm(
-          array('name' => $cvterm, 'cv_id' => array('name' => $cv))
-        );
-        
-        if ($term) {
-          $type_ids[ $term->cvterm_id ] = array($cv => $cvterm);
-        }
-      }      
-    }
+    // Fetch all properties of record id since there is no access to the citation template tokens and all, 
+    // for this content type.
+    $sql = "
+      SELECT CONCAT(t3.name, ':', t2.name) AS token, t1.value AS token_value, t1.rank AS token_rank  
+      FROM {%s} AS t1 LEFT JOIN {cvterm} AS t2 ON t1.type_id = t2.cvterm_id LEFT JOIN {cv} AS t3 ON t2.cv_id = t3.cv_id
+      WHERE %s = :record_id ORDER BY t1.type_id ASC
+    ";
     
-    if ($type_ids) {
-      // Query all items that makeup the citation.
-      $sql = "SELECT type_id, value FROM {%s} WHERE type_id IN (:type_ids) AND %s = :table_id ORDER BY type_id ASC";
-      $query = chado_query(sprintf($sql, $table_prop, $table_id), 
-        array(':type_ids' => array_keys($type_ids), ':table_id' => $record_id)
-      );
-
-      if ($query->rowCount() > 0) {
-        $data = $query->fetchAllKeyed(0, 1);
+    $sql = sprintf($sql, $table_prop, $table_id);
+    $properties = chado_query($sql, array(':record_id' => $record_id));
+    
+    // Preapre citations:
+    // cv:cvterm - rank - value.
+    if ($properties->rowCount() > 0) {
+      foreach($properties as $prop) {
+        $entity->{$field_name}['und'][0]['value']['hydra:member'][ $prop->token ][] = array(
+           $prop->token_rank => $prop->token_value
+        );
       }
     }
-
-    // Set some defaults for the empty record.
-    $entity->{$field_name}['und'][0] = array(
-      'value' => array(),
-    );
-
-
-    $entity->{$field_name}['und'][0] = array(
-      'ncit:citation' => $data,
-      'hydra:member'  => $type_ids
-    );
   }
 
   /**
