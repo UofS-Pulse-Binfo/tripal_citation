@@ -7,6 +7,8 @@
 
 // Prepare term used by field.
 module_load_include('inc', 'tripal_citation', 'includes/TripalFields/tripal_citation.fields');
+// Include citation API.
+module_load_include('inc', 'tripal_citation', 'api/tripal_citation.api');
 
 function tripal_citation_menu() {
   // Configure Tripal Citation.

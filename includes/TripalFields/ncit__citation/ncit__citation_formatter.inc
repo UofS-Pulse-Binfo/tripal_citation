@@ -18,6 +18,7 @@ class ncit__citation_formatter extends TripalFieldFormatter {
   public static $default_settings = array(
     'template' => '',
     'date' => '',
+    'title' => '',
     'prefer_publication' => 1
   );
 
@@ -58,24 +59,18 @@ class ncit__citation_formatter extends TripalFieldFormatter {
     $citation_date = trim($settings['date']);   
     $citation  = '';
 
-    $link = url(current_path(), array('absolute' => TRUE));
-    $non_cvterms = array(
-      '{CURRENT_DATE}' => format_date(time(), $citation_date), 
-      '{CURRENT_URL}' => l($link, $link)
-    );
-
     if ($items[0]['value'] && !empty($citation_template)) {
       // 1. TRANSPOSE ALL NON-CVTERM TOKENS.
-      $citation = str_replace(array_keys($non_cvterms), array_values($non_cvterms), $citation_template);
+      $citation = tripal_citation_transpose_non_cvterm($citation_template, 
+        array('current_date' => $citation_date)
+      );
 
       // 2. TRANSPOSE ALL CVTERM TOKENS.
       // From this point use already revised version of template where
-      // all non-cvterms are omitted.
+      // all non-cvterms are omitted and resolved.
       
-      // Get all tokens.
-      preg_match_all('/{(.*?)}/', $citation, $match);
-      // Tokens from the template settings.
-      $tokens_template = $match[1];
+      // Get all tokens from the template.
+      $tokens_template = tripal_citation_get_tokens($citation);
       // All dataset for this entity keyed by cvterm token.
       $tokens_dataset = $items[0]['value']['hydra:member'];
 
@@ -88,42 +83,43 @@ class ncit__citation_formatter extends TripalFieldFormatter {
             // Token has data.
             $dataset = $tokens_dataset[ $token ];
    
-            // Rank order by rank each item in a dataset by using the key
-            // which is the rank value for a datapoint.
-            array_multisort(array_keys($dataset), SORT_DESC, $dataset);
-            
-            $token_values = array();
-            foreach($dataset as $value) {
-              // This is the value in the right order (by rank).
-              $token_values[] = reset($value);
-            }
+            // dataset: token = [rank => value], [rank => value] ...
+            // Rank the values (if multiple values) and comma separate.
+            $token_value = tripal_citation_rank_token_values($dataset);
 
             // Transpose this token back to the current citation.
-            $replace = '{' . $token . '}';
-            $citation = str_replace($replace, implode(', ', $token_values), $citation);
+            $citation = tripal_citation_transpose_cvterm($citation, $token, $token_value);
           }
         }
       }
 
+      // 3. BEFORE REPORTING, SEE IF THERE'S ANY TOKEN LEFT OUT
+      //    AND RESOLVE EACH TO MISSIN:
+      
+      unset($tokens_dataset);
+      
+      // At this stage citation is almost in its completed state.
+      $tokens_template = array();
+      $tokens_template = tripal_citation_get_tokens($citation);
+      if ($tokens_template) {
+        // Still has tokens, got to be a Missing token.
+        foreach($tokens_template as $token) {
+          $citation = tripal_citation_transpose_missing($citation, $token);
+        }
+      }
+
+
       $module_path = drupal_get_path('module', 'tripal_citation');
       // Apply template to citation using style set in configuration.
-      $conf_style = variable_get('tripal_citation_appearance');
-      $conf_title  = variable_get('tripal_citation_title');
-      $conf_control = variable_get('tripal_citation_control');
-
-      $markup = theme('tripal_citation_citation', array(
-        'style' => $conf_style,
-        'citation' => $citation,
-        'title' => $conf_title,
-        'control' => $conf_control
-      ));
+      $override = (trim($settings['title']) == '') ? array() : array('title' => $settings['title']);
+      $markup = tripal_citation_theme_citation($citation, $override);
 
       $element[0] = array(
         '#type' => 'markup',
         '#markup' => $markup,
         '#attached' => array(
           'css' => array($module_path . '/theme/style/style-citation.css'),
-          'js'  => array()
+          'js'  => array($module_path . '/theme/script/script-copy-citation.js')
         )
       );
     }
@@ -150,11 +146,10 @@ class ncit__citation_formatter extends TripalFieldFormatter {
     // Date format to use to convert date token {CURRENT_DATE}
     $system_format = system_get_date_types(); 
     $format_options = array();
-    $this_time = time();
-
+    
     foreach($system_format as $format => $prop) {
       // Date format machine name - FORMAT TITLE - (Example applied to current time).
-      $format_options[ $format ] = strtoupper($prop['title']) . ': (' . format_date($this_time, $format) .')';
+      $format_options[ $format ] = strtoupper($prop['title']) . ': (' . tripal_citation_format_date($format) .')';
     }
 
     $element['date'] = array(
@@ -162,6 +157,13 @@ class ncit__citation_formatter extends TripalFieldFormatter {
       '#title' => t('Date format to use when converting {CURRENT_DATE} date token'),
       '#options' => $format_options,
       '#default_value' => $settings['date'],
+    );
+
+    $element['title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Citation title text for this content type'),
+      '#description' => t('This title will override title set in the main configuration'),
+      '#default_value' => $settings['title'],
     );
     
     // Use publication when available as citation.
@@ -185,10 +187,11 @@ class ncit__citation_formatter extends TripalFieldFormatter {
     // Translate value of prefer publication to yes or no.
     $prefer_publication = ($settings['prefer_publication']) ? 'yes' : 'no';
 
-    $summary = t('<strong>Citation Template</strong> @template<br /><strong>Date Token</strong> @date<br /><strong>Prefer Publication</strong> @prefer_publication',
+    $summary = t('<strong>Citation Template</strong> @template<br /><strong>Date Token</strong> @date<br /><strong>Title</strong> @title<br /><strong>Prefer Publication</strong> @prefer_publication',
       array(
         '@template' => $settings['template'],
-        '@date' => $settings['date'],
+        '@date' => $settings['date'] . ' (' . tripal_citation_format_date($settings['date']) . ')',
+        '@title' => $settings['title'],
         '@prefer_publication' => $prefer_publication
     ));
 

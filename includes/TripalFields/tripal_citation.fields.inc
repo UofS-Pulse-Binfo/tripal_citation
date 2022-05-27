@@ -34,25 +34,28 @@
 function tripal_citation_bundle_fields_info($entity_type, $bundle) {
   $fields = array();
   
-  // NCIT citation.
-  tripal_insert_cvterm(array(
-    'id' => 'ncit:citation',
-    'name' => 'citation',
-    'cv_name' => 'ncit',
-    'definition' => 'Provide automated citations for data. Used in Tripal Citation Field.',
-  ));
+  // DO NOT ATTACH TO CVTERMS.
+  if (isset($bundle->data_table) && $bundle->data_table != 'cvterm') {
+    // NCIT citation.
+    tripal_insert_cvterm(array(
+      'id' => 'ncit:citation',
+      'name' => 'citation',
+      'cv_name' => 'ncit',
+      'definition' => 'Provide automated citations for data. Used in Tripal Citation Field.',
+    ));
 
-  $field_name = 'ncit__citation';
-  $field_type = 'ncit__citation';
-  $fields[$field_name] = array(
-    'field_name' => $field_name,
-    'type' => $field_type,
-    'cardinality' => 1,
-    'locked' => FALSE,
-    'storage' => array(
-	    'type' => 'field_chado_storage',
-    ),
-  );
+    $field_name = 'ncit__citation';
+    $field_type = 'ncit__citation';
+    $fields[$field_name] = array(
+      'field_name' => $field_name,
+      'type' => $field_type,
+      'cardinality' => 1,
+      'locked' => FALSE,
+      'storage' => array(
+        'type' => 'field_chado_storage',
+      ),
+    );
+  }
 
   return $fields;
 }
@@ -81,41 +84,45 @@ function tripal_citation_bundle_fields_info($entity_type, $bundle) {
  */
 function tripal_citation_bundle_instances_info($entity_type, $bundle) {
   $instances = array();
-
-  $field_name = 'ncit__citation';
-  $field_type = 'ncit__citation';
-  $instances[$field_name] =  array(
-    'field_name' => $field_name,
-    'entity_type' => $entity_type,
-    'bundle' => $bundle->name,
-    'label' => 'Tripal Citation',
-    'description' => 'Provide automated citations for data',
-    'required' => FALSE,
-    'settings' => array(
-      'term_vocabulary' => 'ncit',
-      'term_name' => 'citation',
-      'term_accession' => 'citation',
-      'auto_attach' => FALSE,
-      'chado_table' => $bundle->data_table,
-      'chado_column' => $bundle->data_table . '_id',
-      'base_table' => $bundle->data_table,
-    ),
-    'widget' => array(
-      'type' => 'ncit__citation_widget',
-      'settings' => array(),
-    ),
-    'display' => array(
-      'default' => array(
-        'label' => 'hidden',
-        'type' => 'ncit__citation_formatter',
-        'settings' => array(
-          'template' => '',
-          'date' => '{CURRENT_DATE}',
-          'prefer_publication' => 1
+  
+  // DO NOT ATTACH TO CVTERMS.
+  if (isset($bundle->data_table) && $bundle->data_table != 'cvterm') {
+    $field_name = 'ncit__citation';
+    $field_type = 'ncit__citation';
+    $instances[$field_name] =  array(
+      'field_name' => $field_name,
+      'entity_type' => $entity_type,
+      'bundle' => $bundle->name,
+      'label' => 'Tripal Citation',
+      'description' => 'Provide automated citations for data',
+      'required' => FALSE,
+      'settings' => array(
+        'term_vocabulary' => 'ncit',
+        'term_name' => 'citation',
+        'term_accession' => 'citation',
+        'auto_attach' => FALSE,
+        'chado_table' => $bundle->data_table,
+        'chado_column' => $bundle->data_table . '_id',
+        'base_table' => $bundle->data_table,
+      ),
+      'widget' => array(
+        'type' => 'ncit__citation_widget',
+        'settings' => array(),
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'type' => 'ncit__citation_formatter',
+          'settings' => array(
+            'template' => '',
+            'date' => 'short',
+            'title' => '',
+            'prefer_publication' => 1
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
   
   return $instances;
 }

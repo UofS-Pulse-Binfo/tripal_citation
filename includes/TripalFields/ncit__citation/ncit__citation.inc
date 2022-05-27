@@ -113,30 +113,34 @@ class ncit__citation extends TripalField {
     $entity->{$field_name}['und'][0]['value'] = array();
 
     $table_name = $entity->chado_record->tablename;
-    $table_prop = $table_name . 'prop';
     $table_id   = $table_name . '_id';
     $record_id  = $entity->chado_record->{$table_id};
     
-    // Fetch all properties of record id since there is no access to the citation template tokens and all, 
-    // for this content type.
-    $sql = "
-      SELECT CONCAT(t3.name, ':', t2.name) AS token, t1.value AS token_value, t1.rank AS token_rank  
-      FROM {%s} AS t1 LEFT JOIN {cvterm} AS t2 ON t1.type_id = t2.cvterm_id LEFT JOIN {cv} AS t3 ON t2.cv_id = t3.cv_id
-      WHERE %s = :record_id ORDER BY t1.type_id ASC
-    ";
+    $prop_table = array($table_name);
     
-    $sql = sprintf($sql, $table_prop, $table_id);
-    $properties = chado_query($sql, array(':record_id' => $record_id));
-    
-    // Preapre citations:
-    // cv:cvterm - rank - value.
-    if ($properties->rowCount() > 0) {
-      foreach($properties as $prop) {
-        $entity->{$field_name}['und'][0]['value']['hydra:member'][ $prop->token ][] = array(
-           $prop->token_rank => $prop->token_value
-        );
-      }
+    if ($table_name != 'project') {
+      array_push($prop_table, 'project');
     }
+
+    foreach($prop_table as $table) {
+      // Fetch all properties.
+      $prop = ($table != 'project') ? 'prop' : $table;
+      $properties = tripal_citation_get_properties($record_id, $table, $prop); 
+dpm($properties);
+      // Prepare citations:
+      // Properties returned contain type_id expanded to CV name:CVTERM name, rank and value.
+      // Prepare an array where each property is keyed by cv:cvterm name. Corresponding value
+      // for each item will contain an array keyed by rank and item value as the property value.
+  
+      // cv:cvterm - rank - value.
+      if ($properties) {
+        foreach($properties as $prop) {
+          $entity->{$field_name}['und'][0]['value']['hydra:member'][ $prop->token ][] = array(
+            $prop->token_rank => $prop->token_value
+          );
+        }
+      }
+    }  
   }
 
   /**

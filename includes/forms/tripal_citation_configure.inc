@@ -47,12 +47,10 @@ function tripal_citation_configure_form($form, &$form_state) {
     );
     
     // Render a citation with the style selected applied.
-    $markup = theme('tripal_citation_citation', array(
-      'style' => $default_style,
-      'citation' => $example_citation,
-      'title' => '',
-      'control' => 'none'
-    ));
+    // Example citation has no title and control.
+    $markup = tripal_citation_theme_citation($example_citation, 
+      array('title' => '', 'control' => 'none')
+    );
     
     $form['configure_appearance']['apply_style'] = array(
       '#type' => 'markup',
@@ -74,12 +72,11 @@ function tripal_citation_configure_form($form, &$form_state) {
     );
 
     // Render a citation with title text.
-    $markup = theme('tripal_citation_citation', array(
-      'style' => 'banner',
-      'citation' => $example_citation,
-      'title' => 'This is an example title text',
-      'control' => 'none'
-    ));
+    // Example citation has no title and control and is using banner style.
+    $markup = tripal_citation_theme_citation($example_citation, 
+      array('style' => 'banner', 'title' => 'This is an example title text', 'control' => 'none')
+    );
+
     
     $form['configure_appearance']['apply_title'] = array(
       '#type' => 'markup',
@@ -105,12 +102,10 @@ function tripal_citation_configure_form($form, &$form_state) {
     );
     
     // Render cittion (matching the selected style) with copy button.
-    $markup = theme('tripal_citation_citation', array(
-      'style' => 'banner',
-      'citation' => $example_citation,
-      'title' => '',
-      'control' => 'copy'
-    ));
+    // Example citation has no title, is using banner style and copy button on.
+    $markup = tripal_citation_theme_citation($example_citation, 
+      array('style' => 'banner', 'title' => '', 'control' => 'copy')
+    );
 
     $form['configure_controls']['add_copy'] = array(
       '#type' => 'markup',
@@ -134,7 +129,6 @@ function tripal_citation_configure_form($form, &$form_state) {
  */
 function tripal_citation_configure_form_submit($form, $form_state) {
   // Appearance:
-
   // Style.
   $style = $form_state['values']['select_style'];
   variable_set('tripal_citation_appearance', $style);
@@ -145,6 +139,7 @@ function tripal_citation_configure_form_submit($form, $form_state) {
  
 
   // Control:
+  // Copy button.
   // NOTE: to disable control use none.
   $control = $form_state['values']['checkbox_copy'];
   $control_value = ($control == 1) ? 'copy' : 'none'; 

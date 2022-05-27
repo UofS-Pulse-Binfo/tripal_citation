@@ -23,10 +23,12 @@ $copy_title = ($citation['control'] == 'copy')
   ? 'Copy citation to clipboard' : '';
 ?>
 
-<div class="tripal-citation-cite">
+<div class="tripal-citation">
   <strong><?php print $citation['title']; ?></strong>
-  <div class="<?php print 'tripal-citation-style-' . $citation['style']; ?>">
-    <?php print $citation['citation']; ?>
+  <div class="tripal-citation-cite">
+    <div class="<?php print 'tripal-citation-style-' . $citation['style']; ?>">
+      <?php print $citation['citation']; ?>
+    </div>
+    <div title="<?php print $copy_title; ?>" class="<?php print 'tripal-citation-control-' . $citation['control']; ?>"></div>
   </div>
-  <div title="<?php print $copy_title; ?>" class="<?php print 'tripal-citation-control-' . $citation['control']; ?>"></div>
-</div>
+ </div>

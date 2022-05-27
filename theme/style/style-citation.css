@@ -6,10 +6,10 @@
 .tripal-citation-cite {
   display: block;
   position: relative;
-  margin: 20px 0;
+  margin: 0 0 20px 0;
 }
 
-.tripal-citation-cite strong {
+.tripal-citatione strong {
   display: block;
   font-size: 1.1em;
 }
@@ -57,7 +57,6 @@
 .tripal-citation-style-simple {
   font-style: italic;
   margin: 10px 0;
-  padding: 0.5em;
 }
 
 
