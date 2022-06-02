@@ -49,65 +49,126 @@ function tripal_citation_theme_citation($citation, $override = array()) {
 }
 
 /**
- * Get entity record properties.
+ * Get entity record publication(s).
  * 
  * @param $record_id  
  *   Integer, id number, the primary key to match.
  * @param $source_table
  *   String, table name of the source relation where the record resides.
  *   For example, if the entity is project, source table is chado.project.
- * @param $type
- *   String: prop - in table prop, project - in project, analysis - in featureanalysis.
- *   Default: prop.
  * 
- * @return object
- *   All properties contained in the prop table of the source table -
- *   type_id expanded to CV NAME:CVTERM NAME, rank and value.
+ * @return array
+ *   Publication(s) after establishing publication 
+ *   record relationship - table name + _pub.
  */
-function tripal_citation_get_properties($record_id, $source_table, $property_type = 'prop') {
+function tripal_citation_get_publication($record_id, $source_table) {  
+  // Table connection pub table.
+  $table_pub = $source_table . '_pub';
+  // Foreign key connecting to the source table.
+  $table_pub_id = $source_table . '_id';
+  $publication = 0;
+
+  if (chado_table_exists($table_pub)) {
+    // Table exists in schema.
+    $publ_sql = "SELECT pub_id FROM {%s} WHERE %s = :record_id ORDER BY pub_id ASC";
+    $publ_sql = sprintf($publ_sql, $table_pub, $table_pub_id); 
+   
+    // All related publications.
+    $result = chado_query($publ_sql, array(':record_id' => $record_id));
+    $publication = ($result->rowCount() > 0) ? $result->fetchCol() : 0;
+  }
+
+  return $publication;
+}
+
+/**
+ * Get entity record project(s).
+ *
+ * @param $record_id  
+ *   Integer, id number, the primary key to match.
+ * @param $source_table
+ *   String, table name of the source relation where the record resides.
+ *   For example, if the entity is project, source table is chado.project.
+ * 
+ * @return array
+ *   Project after establishing project 
+ *   record relationship - project + _table name.
+ */
+function tripal_citation_get_project($record_id, $source_table) {
+  // From chado schema diagram.
+  // Only the following tables support project connection.
+  // project_analysis, project_contact, project_dbxref, project_feature,
+  // project_pub, project_relationship and project_stock.
+  $table_projects = array(
+    'project_pub', // Table connection: pub.
+    'project_stock', // Table connection: stock.
+    'project_dbxref', // Table connection: dbxref.
+    'project_contact', // Table connection: contact.
+    'project_feature',  // Table connection: feature. 
+    'project_analysis',   // Table connection: analysis. 
+    'project_relationship', // Table connection: relationship.
+  );
+  
+  // Table connection project table.
+  $table_project = 'project_' . $source_table;
+  // Foreign key connecting to the source table.
+  $table_project_id = $source_table . '_id';
+  $project = 0;
+
+  if (in_array($table_project, $table_projects)) {
+    // Table has connection.
+    if (chado_table_exists($table_project)) {
+      // Table exists.
+      $proj_sql = "SELECT project_id FROM {%s} WHERE %s = :record_id ORDER BY project_id ASC";
+      $proj_sql = sprintf($proj_sql, $table_project, $table_project_id); 
+      
+      // All related projects.
+      $result = chado_query($proj_sql, array(':record_id' => $record_id));
+      $project = ($result->rowCount() > 0) ? $result->fetchCol() : 0;
+    }
+  }
+
+  return $project;
+}
+
+/**
+ * Get properties from table prop table.
+ * 
+ * @param $record_id  
+ *   Array, id number(s) to match.
+ * @param $source_table
+ *   String, table name of the source relation where the record resides.
+ *   For example, if the entity is project, source table is chado.project.
+ *   
+ * @return object
+ *   Properties from prop table where term ids are resolved to indicate
+ *   the human-readable cvterm name.
+ */
+function tripal_citation_get_property($record_id, $source_table) {
+  // Assumptions: that every table in chado has prop table where the table name is
+  // table+prop (ie. project - projectprop, stock - stockprop) and in each table
+  // primary key (record id) name would be the table name + _id (ie. project - project_id).
+  $record_id = (array) $record_id;
+
   $prop_sql = "
     SELECT CONCAT(t3.name, ':', t2.name) AS token, t1.value AS token_value, t1.rank AS token_rank  
     FROM {%s} AS t1 LEFT JOIN {cvterm} AS t2 ON t1.type_id = t2.cvterm_id LEFT JOIN {cv} AS t3 ON t2.cv_id = t3.cv_id
     WHERE t1.%s IN (:record_id) ORDER BY t1.type_id ASC
   ";
 
-  if ($type == 'project') {
-    // Table name as project_[table_name].
-    $table_project = 'project_' . $source_table;
-    $table_project_id = $source_table . '_id';
+  // Default: prop table.
+  // Assumptions: that every table in chado has prop table where the table name is
+  // table+prop (ie. project - projectprop, stock - stockprop) and in each table
+  // primary key (record id) name would be the table name + _id (ie. project - project_id).
+  $table_prop = $source_table . 'prop';
+  $table_id   = $source_table . '_id';
     
-    // Get all projects for a record id.
-    $sql = "SELECT project_id FROM {%s} WHERE %s = :record_id ORDER BY project_id ASC";
-    $sql = sprintf($sql, $table_project, $table_project_id);
+  // Fetch all properties of record id since there is no access to the citation template tokens and all, 
+  // for this content type.
+  $sql = sprintf($prop_sql, $table_prop, $table_id);
+  $properties = chado_query($sql, array(':record_id' => $record_id));
 
-    $projects = chado_query($sql, array(':record_id' => $record_id));
-    if ($projects->rowCount() > 0) {
-      $project_ids = $project->fetchCol();
-      // Get all properties for projects in prop table.
-      $sql = sprintf($prop_sql, 'projectprop', 'project_id');
-      $properties = chado_query($sql, array(':record_id' => $ids));
-    }
-
-  }
-  elseif ($type == 'analysis') {
-    $table_analysis = 'analysisfeature';
-    // @TODO: resolved multiple analysis returned which one to select.
-    //        check if table exists
-  }
-  else {
-    // Assumptions: that every table in chado has prop table where the table name is
-    // table+prop (ie. project - projectprop, stock - stockprop) and in each table
-    // primary key (record id) name would be the table name + _id (ie. project - project_id).
-    $table_prop = $source_table . 'prop';
-    $table_id   = $source_table . '_id';
-    
-    // Fetch all properties of record id since there is no access to the citation template tokens and all, 
-    // for this content type.
-    $sql = sprintf($prop_sql, $table_prop, $table_id);
-    $properties = chado_query($sql, array(':record_id' => array($record_id)));
-  }
-  
-  return ($properties->rowCount() > 0) ? $properties : 0;
+  return $properties;
 }
 
 /**
@@ -222,18 +283,23 @@ function tripal_citation_transpose_missing($template, $token) {
 function tripal_citation_rank_token_values($token_values) {
   // Rank order (ASCENDING ORDER) by rank each item in a dataset by using the key
   // which is the rank value for a datapoint.
-  $ranks = array_keys($token_values);
+  if (count($token_values) > 1) {
+    $ranks = array_keys($token_values);
 
-  array_multisort($ranks, SORT_ASC, $token_values);
+    array_multisort($ranks, SORT_ASC, $token_values);
   
-  $rank_values = array();
-  foreach($token_values as $value) {
-    // This is the value in the right order (by rank).
-    $rank_values[] = reset($value);
-  }
+    $rank_values = array();
+    foreach($token_values as $value) {
+      // This is the value in the right order (by rank).
+      $rank_values[] = reset($value);
+    }
    
-  $result = implode(', ', $rank_values);
-  return (count($rank_values) > 1) ? substr_replace($result, ' and', strrpos($result, ','), 1) : $result;
+    $result = implode(', ', $rank_values);
+    return (count($rank_values) > 1) ? substr_replace($result, ' and', strrpos($result, ','), 1) : $result;
+  }
+  else {
+    return reset($token_values[0]);
+  }
 }
 
 /**

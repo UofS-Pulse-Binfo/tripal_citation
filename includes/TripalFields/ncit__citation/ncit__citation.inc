@@ -116,31 +116,53 @@ class ncit__citation extends TripalField {
     $table_id   = $table_name . '_id';
     $record_id  = $entity->chado_record->{$table_id};
     
-    $prop_table = array($table_name);
+    $properties = array();
+
+    // Get entity publications connnection.
+    $publication = tripal_citation_get_publication($record_id, $table_name);
+    $properties[0] = ''; // PUBLICAIONS:
+    if ($publication) {
+      // In chado.pub and properties in pubprop.
+      $properties[0] = tripal_citation_get_property($publication, 'pub');
+    }
     
-    if ($table_name != 'project') {
-      array_push($prop_table, 'project');
+    // Get entity project connection.
+    $project = tripal_citation_get_project($record_id, $table_name);
+    $properties[1] = ''; // PROJECT:
+    if ($project) {
+      // In chado.project and properties in projectprop.
+      $properties[1] = tripal_citation_get_property($project, 'project');
     }
 
-    foreach($prop_table as $table) {
-      // Fetch all properties.
-      $prop = ($table != 'project') ? 'prop' : $table;
-      $properties = tripal_citation_get_properties($record_id, $table, $prop); 
-dpm($properties);
-      // Prepare citations:
-      // Properties returned contain type_id expanded to CV name:CVTERM name, rank and value.
-      // Prepare an array where each property is keyed by cv:cvterm name. Corresponding value
-      // for each item will contain an array keyed by rank and item value as the property value.
-  
-      // cv:cvterm - rank - value.
-      if ($properties) {
-        foreach($properties as $prop) {
-          $entity->{$field_name}['und'][0]['value']['hydra:member'][ $prop->token ][] = array(
+    // Get entity feature conection.
+    $properties[2] = ''; // ANALYSISFEATURE:
+    if ($table_name == 'analysisfeature') {
+      // If content is analysisfeature.
+      if (chado_table_exists('analysisfeature') && chado_table_exists('analysisfeatureprop')) {
+        $properties[2] = tripal_citation_get_property($record_id, 'analysisfeature');
+      }
+    }
+
+    // Get entity property from prop table.
+    $properties[3] = ''; // PROPTABLE:
+    $properties[3] = tripal_citation_get_property($record_id, $table_name);
+    
+
+    // table = cv:cvterm - rank - value.
+    if ($properties) {
+      foreach($properties as $table_id => $property) {
+        if ($property == '') {
+          $entity->{$field_name}['und'][0]['value']['hydra:member'][ $table_id ] = array();
+          continue;
+        }
+
+        foreach($property as $prop) {
+          $entity->{$field_name}['und'][0]['value']['hydra:member'][ $table_id ][ $prop->token ][] = array(
             $prop->token_rank => $prop->token_value
           );
         }
       }
-    }  
+    }
   }
 
   /**

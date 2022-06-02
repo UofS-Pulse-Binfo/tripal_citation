@@ -57,73 +57,75 @@ class ncit__citation_formatter extends TripalFieldFormatter {
 
     $citation_template = trim($settings['template']);
     $citation_date = trim($settings['date']);   
-    $citation  = '';
 
+    // The final citation text generated.
+    $citation = '';  
+    
     if ($items[0]['value'] && !empty($citation_template)) {
-      // 1. TRANSPOSE ALL NON-CVTERM TOKENS.
-      $citation = tripal_citation_transpose_non_cvterm($citation_template, 
-        array('current_date' => $citation_date)
-      );
+      // Field has data and template has been set.
 
-      // 2. TRANSPOSE ALL CVTERM TOKENS.
-      // From this point use already revised version of template where
-      // all non-cvterms are omitted and resolved.
+      // # 1. TRANSPOSE ALL CVTERM TOKENS.
       
       // Get all tokens from the template.
-      $tokens_template = tripal_citation_get_tokens($citation);
+      $tokens_template = tripal_citation_get_tokens($citation_template);
       // All dataset for this entity keyed by cvterm token.
       $tokens_dataset = $items[0]['value']['hydra:member'];
+    
+      // Citation template or publication?
+      if ($settings['prefer_publication']) {
+        // Prefer publication citation.
+        // Check for publication, project and analysis table connection.
+        // PUBLICATION, PROJECT AND ANALYSISFEATURE.
+        $property_set = array(0, 1, 2);
+      }
+      else {
+        // Citation template. 
+        // Replace tokens using the table prop table and check project and analysis if
+        // prop did not house the tokens.
+        // PROJECT, ANALYSISFEATURE AND PROP TABLE.
+        $property_set = array(1, 2, 3);
+      }
 
-      if ($tokens_template) {
+      // Transpose all non-cvterms and missing information.
+      // Using the base properties defined.
+      if (count($tokens_template) > 0) { 
         // If there are tokens to parse coming off citation template settings.
-        // Work only on the tokens that are in the template and excess
-        // tokens from instance can be ignored.
-        foreach($tokens_template as $token) {         
-          if ($tokens_dataset[ $token ]) {
-            // Token has data.
-            $dataset = $tokens_dataset[ $token ];
-   
-            // dataset: token = [rank => value], [rank => value] ...
-            // Rank the values (if multiple values) and comma separate.
-            $token_value = tripal_citation_rank_token_values($dataset);
+        foreach($tokens_template as $token) {
+          foreach($property_set as $set) { 
+            if (is_array($tokens_dataset[ $set ]) && $tokens_dataset[ $set ][ $token ]) { 
+              // Token match a data from the properties.
+              // Process (sort by rank) and render comma separate values
+              // (if applicable) as the value for this token.
+              $dataset = $tokens_dataset[ $set ][ $token ];
 
-            // Transpose this token back to the current citation.
-            $citation = tripal_citation_transpose_cvterm($citation, $token, $token_value);
+              // dataset: token = [rank => value], [rank => value] ...
+              // Rank the values (if multiple values) and comma separate.
+              $token_value = tripal_citation_rank_token_values($dataset);
+
+              // Transpose this token back to the current citation.
+              $citation = tripal_citation_transpose_cvterm($citation, $token, $token_value);
+              // No need to inspect other terms one token has been indentified.
+              break;
+            }
           }
         }
       }
-
-      // 3. BEFORE REPORTING, SEE IF THERE'S ANY TOKEN LEFT OUT
-      //    AND RESOLVE EACH TO MISSIN:
-      
-      unset($tokens_dataset);
-      
-      // At this stage citation is almost in its completed state.
-      $tokens_template = array();
-      $tokens_template = tripal_citation_get_tokens($citation);
-      if ($tokens_template) {
-        // Still has tokens, got to be a Missing token.
-        foreach($tokens_template as $token) {
-          $citation = tripal_citation_transpose_missing($citation, $token);
-        }
-      }
-
-
-      $module_path = drupal_get_path('module', 'tripal_citation');
-      // Apply template to citation using style set in configuration.
-      $override = (trim($settings['title']) == '') ? array() : array('title' => $settings['title']);
-      $markup = tripal_citation_theme_citation($citation, $override);
-
-      $element[0] = array(
-        '#type' => 'markup',
-        '#markup' => $markup,
-        '#attached' => array(
-          'css' => array($module_path . '/theme/style/style-citation.css'),
-          'js'  => array($module_path . '/theme/script/script-copy-citation.js')
-        )
-      );
     }
 
+    $module_path = drupal_get_path('module', 'tripal_citation');
+    // Apply template to citation using style set in configuration.
+    $override = (trim($settings['title']) == '') ? array() : array('title' => $settings['title']);
+    $markup = tripal_citation_theme_citation($citation, $override);
+
+    $element[0] = array(
+      '#type' => 'markup',
+      '#markup' => $markup,
+      '#attached' => array(
+        'css' => array($module_path . '/theme/style/style-citation.css'),
+        'js'  => array($module_path . '/theme/script/script-copy-citation.js')
+      )
+    );
+    
     return $element;
   }
 
