@@ -2,7 +2,7 @@
 
 /**
  * @file 
- * Main install.
+ * Main install routine of this module.
  */
 
  /**
@@ -13,7 +13,7 @@ function tripal_citation_enable() {
 
   // Appearance/styling of citations.
   // Default style to smart citations. 
-  // Other style banner and simple.
+  // Other styles are banner and simple.
   // @see configuration.
   variable_set('tripal_citation_appearance', 'smart');
 
@@ -28,4 +28,23 @@ function tripal_citation_enable() {
   // none - to show no control.
   // @see configuration.
   variable_set('tripal_citation_control', 'copy');
+
+ 
+  // Terms used:
+  // publication - refers to publications.
+  // pub_column  - refers to a value of a field in chado.pub.
+  // project  - refers to projects.
+  // analysis - refers to analysis.
+  // property - referes to property in a chado.tableprop table.
+  $terms = array('publication', 'pub_column', 'project', 'analysis', 'property');
+  
+  foreach($terms as $term) {
+    tripal_insert_cvterm(array(
+      'name' => $term,
+      'definition' => $term . ': Term used to reference a property in tripal_citation module.',
+      'accession' => $term,
+      'cv_name' => 'tripal_citation',
+      'db_name' => 'tripal_citation',
+    ));
+  }
 }

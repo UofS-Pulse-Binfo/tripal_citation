@@ -2,17 +2,23 @@
 
 /**
  * @file
- * Master template file of citations.
+ * Master template file of rendered citations.
  */
 
 /**
+ * Variables (key):
+ * title - configuration title value.
+ * style  - configuration style value.
+ * control  - configuration control value.
+ * citation   - generated text (citation) by field.
+ * 
  * Class styles for citations:
  * smart - tripal-citation-style-smart (use quotes)
  * banner - tripal-citation-style-banner (banner style)
  * simple  - tripal-citation-style-simple (plain text)
  * 
- * Ckass for controls:
- * copy - tripal-citation-control-copy (copy to clipboard)
+ * Class for controls:
+ * copy - tripal-citation-control-copy (copy to clipboard button)
  * none - tripal-citation-control-none (no button)
  */
 

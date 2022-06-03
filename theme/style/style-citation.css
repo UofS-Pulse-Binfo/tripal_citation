@@ -3,15 +3,15 @@
  * Style citation.
  */
 
+.tripal-citation strong {
+  display: block;
+  font-size: 1.1em;
+}
+
 .tripal-citation-cite {
   display: block;
   position: relative;
   margin: 0 0 20px 0;
-}
-
-.tripal-citatione strong {
-  display: block;
-  font-size: 1.1em;
 }
 
 /* APPEARANCE: */
@@ -53,7 +53,7 @@
 }
 
 
-/* Simple Citataion */
+/* Simple Citation */
 .tripal-citation-style-simple {
   font-style: italic;
   margin: 10px 0;

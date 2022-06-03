@@ -111,58 +111,58 @@ class ncit__citation extends TripalField {
   public function load($entity) {
     $field_name = $this->instance['field_name'];
     $entity->{$field_name}['und'][0]['value'] = array();
-
+    
+    // Establish table used by the content type and 
+    // the record id number.
     $table_name = $entity->chado_record->tablename;
     $table_id   = $table_name . '_id';
     $record_id  = $entity->chado_record->{$table_id};
     
     $properties = array();
 
-    // Get entity publications connnection.
+    /// GET PROPERTIES:
+
+    // # PUBLICATIONS:
+    // Get entity publications connection.
     $publication = tripal_citation_get_publication($record_id, $table_name);
-    $properties[0] = ''; // PUBLICAIONS:
-    if ($publication) {
-      // In chado.pub and properties in pubprop.
-      $properties[0] = tripal_citation_get_property($publication, 'pub');
-    }
-    
+    // In chado.pub and properties in pubprop.
+    $properties['tripal_citation:publication'] = ($publication) 
+      ? tripal_citation_get_property($publication, 'pub') : 0;
+    // In cahdo.pub, uniquename (replace param #2 to field where citation resides) column.
+    // If preferred, and has a value, this will become the citation.
+    $properties['tripal_citation:pub_column'] = ($publication) 
+      ? tripal_citation_get_publication_column($publication, 'uniquename') : 0;
+
+      
+    // # PROJECTS:
     // Get entity project connection.
     $project = tripal_citation_get_project($record_id, $table_name);
-    $properties[1] = ''; // PROJECT:
-    if ($project) {
-      // In chado.project and properties in projectprop.
-      $properties[1] = tripal_citation_get_property($project, 'project');
-    }
-
-    // Get entity feature conection.
-    $properties[2] = ''; // ANALYSISFEATURE:
-    if ($table_name == 'analysisfeature') {
-      // If content is analysisfeature.
-      if (chado_table_exists('analysisfeature') && chado_table_exists('analysisfeatureprop')) {
-        $properties[2] = tripal_citation_get_property($record_id, 'analysisfeature');
-      }
-    }
-
-    // Get entity property from prop table.
-    $properties[3] = ''; // PROPTABLE:
-    $properties[3] = tripal_citation_get_property($record_id, $table_name);
+    // In chado.project and properties in projectprop.
+    $properties['tripal_citation:project'] = ($project)
+      ? tripal_citation_get_property($project, 'project') : 0;
     
 
-    // table = cv:cvterm - rank - value.
-    if ($properties) {
-      foreach($properties as $table_id => $property) {
-        if ($property == '') {
-          $entity->{$field_name}['und'][0]['value']['hydra:member'][ $table_id ] = array();
-          continue;
-        }
+    // # ANALYSIS:
+    // Get entity analysis connection.
+    $analysis = tripal_citation_get_analysis($record_id, $table_name);
+    // In chado.pub and properties in pubprop.
+    $properties['tripal_citation:analysis'] = ($analysis) 
+      ? tripal_citation_get_property($record_id, 'analysis') : 0;
 
-        foreach($property as $prop) {
-          $entity->{$field_name}['und'][0]['value']['hydra:member'][ $table_id ][ $prop->token ][] = array(
-            $prop->token_rank => $prop->token_value
-          );
-        }
-      }
-    }
+    
+    // # PROPERTIES:
+    // Get entity property from prop table.
+    // In chado.tablename + prop table of the table.
+    $prop = tripal_citation_get_property($record_id, $table_name);
+    $properties['tripal_citation:property'] = ($prop) ? $prop : 0;
+    
+    ///
+
+    // All properties and publication field value forward to formatter.
+    // All properties in format: PROPERTY TYPE - [TOKEN, TOKEN VALUE, TOKEN RANK].
+    $entity->{$field_name}['und'][0]['value'] = array(
+      'hydra:member' => $properties
+    );
   }
 
   /**

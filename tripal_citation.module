@@ -7,10 +7,12 @@
 
 // Prepare term used by field.
 module_load_include('inc', 'tripal_citation', 'includes/TripalFields/tripal_citation.fields');
-// Include citation API.
+// Include Tirpal Citation API.
 module_load_include('inc', 'tripal_citation', 'api/tripal_citation.api');
 
 function tripal_citation_menu() {
+  $items = array();
+
   // Configure Tripal Citation.
   $items['admin/tripal/extension/tripal_citation/configure'] = array(
     'title' => t('Tripal Citation Configuration'),
@@ -27,9 +29,12 @@ function tripal_citation_menu() {
 /**
  * Implements hook_theme().
  * Theme citations.
+ * 
+ * @see theme/tripal_citation_citation.tpl.php
  */
 function tripal_citation_theme($existing, $type, $theme, $path) {
-  // Rawdata page.
+  $items = array();
+
   $items['tripal_citation_citation'] = array(
     'template' => 'tripal_citation_citation',
     'path' => $path . '/theme',

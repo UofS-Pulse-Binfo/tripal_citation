@@ -1,6 +1,6 @@
 /**
  * @file 
- * Script containing to handle copy button.
+ * Script to handle copy button.
  */
 
 (function ($) {
@@ -22,6 +22,7 @@
             else {
               copy.css('opacity', 1);
               clearInterval(timer);
+              copy.attr('title', 'COPIED citation to clipboard');
             }
 
             t++;

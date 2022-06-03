@@ -7,7 +7,7 @@
   Drupal.behaviors.scriptStyleCitation = {
     attach: function (context, settings) {   
 
-      // Load styling when style is selected.
+      // Load styling when a style is selected.
       $('#tripal-citation-select-style').change(function() {
         var newClass = 'tripal-citation-style-' + $(this).val();
       

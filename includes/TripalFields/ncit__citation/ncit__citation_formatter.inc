@@ -3,8 +3,10 @@
  * @class
  * Purpose: Provide automated citations for data.
  *
- * Display: A simple textfield search form.
- * Configuration:
+ * Display: Rendered HTML
+ * Configuration: Provide a content type level configuration for
+ * citation template, use citation in a publication, time conversion format 
+ * to use and an override to title set in main configuration.
  */
 class ncit__citation_formatter extends TripalFieldFormatter {
   // The default label for this field.
@@ -47,76 +49,137 @@ class ncit__citation_formatter extends TripalFieldFormatter {
    *    hook_field_formatter_view() function.
    */
   public function view(&$element, $entity_type, $entity, $langcode, $items, $display) {
-    // Inspect settings variable and see if this content type has 
-    // citation template set.
-
     // System variables (with default key) defined in hook_bundle_instances_info().
     // @see TripalFields/tripal_citation.fields.inc.
     $display = $this->instance['display']['default'];
     $settings = $display['settings'];
 
-    $citation_template = trim($settings['template']);
-    $citation_date = trim($settings['date']);   
+    // Raw citation template. Contains all tokens as entered in the
+    // citation template settings.
+    $citation_template = trim($settings['template']);  
 
     // The final citation text generated.
     $citation = '';  
     
-    if ($items[0]['value'] && !empty($citation_template)) {
-      // Field has data and template has been set.
+    // Flag that a completed citation coming off a publication (pub field)
+    // has been found and used instead of citation template (if preferred).
+    $citation_found = 0;
 
-      // # 1. TRANSPOSE ALL CVTERM TOKENS.
-      
-      // Get all tokens from the template.
-      $tokens_template = tripal_citation_get_tokens($citation_template);
-      // All dataset for this entity keyed by cvterm token.
-      $tokens_dataset = $items[0]['value']['hydra:member'];
-    
-      // Citation template or publication?
+    // Inspect citaion settings variable and see if this content type has 
+    // citation template set.
+    if ($items[0]['value'] && !empty($citation_template)) {    
+      // Prepare array of property types to inspect for tokens based
+      // on the settings with regards to preference to publication.
       if ($settings['prefer_publication']) {
-        // Prefer publication citation.
-        // Check for publication, project and analysis table connection.
-        // PUBLICATION, PROJECT AND ANALYSISFEATURE.
-        $property_set = array(0, 1, 2);
+        // Prefer publication - inspect publication column,
+        // publication property, project property and analysis property.
+        // Except: when publication has citation stored in a field.        
+        $property_set = array(          
+          'tripal_citation:publication', 
+          'tripal_citation_project', 
+          'tripal_citation_analysis'
+        );
+        
+        // Exception, here citation is completed.
+        $pub_citation_set = 'tripal_citation:pub_column';
+
+        if ($tokens_dataset[ $pub_citation_set ]) {
+          $values = tripal_citation_prepare_values($tokens_dataset[ $pub_citation_set ]);
+          $citation = tripal_citation_rank_token_values($values[ $pub_citation_set ]);
+          
+          if ($citation != '') {
+            // Flag citation found and skip token transposition
+            // method below.
+            $citation_found = 1;
+          }
+        }
+
+        // Otherwise, proceed to using citation template inspecting
+        // the remaining property type in property set.
       }
       else {
-        // Citation template. 
-        // Replace tokens using the table prop table and check project and analysis if
-        // prop did not house the tokens.
-        // PROJECT, ANALYSISFEATURE AND PROP TABLE.
-        $property_set = array(1, 2, 3);
+        // Use citation template inspect project property, analysis property
+        // and prop property.
+        $property_set = array(
+          'tripal_citation:project', 
+          'tripal_citation:analysis',
+          'tripal_citation:property'
+        );
       }
 
-      // Transpose all non-cvterms and missing information.
-      // Using the base properties defined.
-      if (count($tokens_template) > 0) { 
-        // If there are tokens to parse coming off citation template settings.
+      // Field has data and template has been set.
+      // # TRANSPOSE ALL CVTERM TOKENS.
+      // ALL CVTERM TOKENS.
+
+      // Get all tokens from the template.
+      $tokens_template = tripal_citation_get_tokens($citation_template);
+
+      if (count($tokens_template) > 0 && $citation_found == 0) { 
+        // All dataset for this entity keyed by property type token.
+        $tokens_dataset = $items[0]['value']['hydra:member'];
+        // Citation gets the template, save raw copy in the
+        // event nothing was transposed and final process could
+        // reference this copy for missing terms.
+        $citation = $citation_template;
+
+        // Each token in the template, find in every property type.
         foreach($tokens_template as $token) {
-          foreach($property_set as $set) { 
-            if (is_array($tokens_dataset[ $set ]) && $tokens_dataset[ $set ][ $token ]) { 
-              // Token match a data from the properties.
-              // Process (sort by rank) and render comma separate values
-              // (if applicable) as the value for this token.
-              $dataset = $tokens_dataset[ $set ][ $token ];
-
-              // dataset: token = [rank => value], [rank => value] ...
-              // Rank the values (if multiple values) and comma separate.
-              $token_value = tripal_citation_rank_token_values($dataset);
-
-              // Transpose this token back to the current citation.
+          $values = '';
+          
+          foreach($property_set as $set) {
+            $values = tripal_citation_prepare_values($tokens_dataset[ $set ]);
+            // Isolate the dataset.
+            $dataset = $values[ $token ];
+            // Token match a data from this property type.
+            // Process (sort by rank) and render comma separate values
+            // (if applicable) as the value for this token.
+            
+            // dataset: token = [rank => value], [rank => value] ...
+            // Rank the values (if multiple values) and comma separate.
+            // If only 2 values use and instead of comma symbol (ie: You and me).
+            $token_value = tripal_citation_rank_token_values($dataset);
+            
+            // Transpose this token back to the current citation.
+            if ($token_value != '') {
               $citation = tripal_citation_transpose_cvterm($citation, $token, $token_value);
-              // No need to inspect other terms one token has been indentified.
+              // No need to inspect other terms once token has been indentified
+              // in a specific property type.
               break;
             }
           }
         }
+      
+        // If no transposition has occurred, revert the template to the
+        // raw template citation and begin transposition of non-cvterm and missing token.
+        $citation = ($citation == $citation_template) ? $citation_template : $citation;
+
+        // # TRANSPOSE ALL NON CVTERM / MISSING TOKENS.
+        // At this point we used the updated citation where all (attempted) cvterms 
+        // have been resolved or back to the raw template.
+        $citation = tripal_citation_transpose_non_cvterm($citation, 
+          array('current_date' => trim($settings['date']))
+        );
+
+        // # Citation is almost in its final form. Inspect any missing
+        // Token and transpose accordingly.
+        $tokens_template = array();
+        $tokens_template = tripal_citation_get_tokens($citation);
+        if (count($tokens_template) > 0) {
+          // Still has tokens, got to be a Missing token.
+          foreach($tokens_template as $token) {
+            $citation = tripal_citation_transpose_missing($citation, $token);
+          }
+        }      
       }
     }
 
-    $module_path = drupal_get_path('module', 'tripal_citation');
+    // # FINALLY, ANY OVERRIDE TITLE?
     // Apply template to citation using style set in configuration.
     $override = (trim($settings['title']) == '') ? array() : array('title' => $settings['title']);
     $markup = tripal_citation_theme_citation($citation, $override);
-
+    
+    $module_path = drupal_get_path('module', 'tripal_citation');
+    
     $element[0] = array(
       '#type' => 'markup',
       '#markup' => $markup,
@@ -125,10 +188,9 @@ class ncit__citation_formatter extends TripalFieldFormatter {
         'js'  => array($module_path . '/theme/script/script-copy-citation.js')
       )
     );
-    
+
     return $element;
   }
-
 
   /**
    * @see TripalFieldFormatter::settingsForm()
@@ -153,7 +215,8 @@ class ncit__citation_formatter extends TripalFieldFormatter {
       // Date format machine name - FORMAT TITLE - (Example applied to current time).
       $format_options[ $format ] = strtoupper($prop['title']) . ': (' . tripal_citation_format_date($format) .')';
     }
-
+    
+    // Date format to apply to data token.
     $element['date'] = array(
       '#type' => 'select',
       '#title' => t('Date format to use when converting {CURRENT_DATE} date token'),
@@ -161,9 +224,10 @@ class ncit__citation_formatter extends TripalFieldFormatter {
       '#default_value' => $settings['date'],
     );
 
+    // Title override.
     $element['title'] = array(
       '#type' => 'textfield',
-      '#title' => t('Citation title text for this content type'),
+      '#title' => t('Citation alternate title text for this content type'),
       '#description' => t('This title will override title set in the main configuration'),
       '#default_value' => $settings['title'],
     );
@@ -189,7 +253,7 @@ class ncit__citation_formatter extends TripalFieldFormatter {
     // Translate value of prefer publication to yes or no.
     $prefer_publication = ($settings['prefer_publication']) ? 'yes' : 'no';
 
-    $summary = t('<strong>Citation Template</strong> @template<br /><strong>Date Token</strong> @date<br /><strong>Title</strong> @title<br /><strong>Prefer Publication</strong> @prefer_publication',
+    $summary = t('<strong>Citation Template</strong> @template<br /><strong>Date Token</strong> @date<br /><strong>Alternate Title</strong> @title<br /><strong>Prefer Publication</strong> @prefer_publication',
       array(
         '@template' => $settings['template'],
         '@date' => $settings['date'] . ' (' . tripal_citation_format_date($settings['date']) . ')',
