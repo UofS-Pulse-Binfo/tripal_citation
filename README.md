@@ -1,5 +1,4 @@
-![citation](https://user-images.githubusercontent.com/15472253/172239380-b8f13ce9-c7a6-40a2-9577-968484af341c.gif)
-
+![citation](https://user-images.githubusercontent.com/15472253/172244053-270b5f57-44a2-4c22-890e-de42d95abdc8.jpg)
 
 # Tripal Citation
 
