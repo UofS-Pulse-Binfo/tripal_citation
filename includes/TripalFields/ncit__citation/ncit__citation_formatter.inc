@@ -129,23 +129,28 @@ class ncit__citation_formatter extends TripalFieldFormatter {
           foreach($property_set as $set) {
             $values = tripal_citation_prepare_values($tokens_dataset[ $set ]);
             // Isolate the dataset.
-            $dataset = $values[ $token ];
-            // Token match a data from this property type.
-            // Process (sort by rank) and render comma separate values
-            // (if applicable) as the value for this token.
-            
-            // dataset: token = [rank => value], [rank => value] ...
-            // Rank the values (if multiple values) and comma separate.
-            // If only 2 values use and instead of comma symbol (ie: You and me).
-            $token_value = tripal_citation_rank_token_values($dataset);
-            
-            // Transpose this token back to the current citation.
-            if ($token_value != '') {
-              $citation = tripal_citation_transpose_cvterm($citation, $token, $token_value);
-              // No need to inspect other terms once token has been indentified
-              // in a specific property type.
-              break;
-            }
+            if (is_array($values[ $token ])) {
+              $dataset = $values[ $token ];
+              // Token match a data from this property type.
+              // Process (sort by rank) and render comma separate values
+              // (if applicable) as the value for this token.
+              
+              // dataset: token = [rank => value], [rank => value] ...
+              // Rank the values (if multiple values) and comma separate.
+              // If only 2 values use and instead of comma symbol (ie: You and me).
+              $token_value = tripal_citation_rank_token_values($dataset);
+              
+              // Transpose this token back to the current citation.
+              if ($token_value != '') {
+                $citation = tripal_citation_transpose_cvterm($citation, $token, $token_value);
+                // No need to inspect other terms once token has been indentified
+                // in a specific property type.
+
+                // This exits inner loop, in cases where the same token exists in 
+                // the same property set, citation will contain both tokens.
+                break;
+              }
+            }  
           }
         }
       

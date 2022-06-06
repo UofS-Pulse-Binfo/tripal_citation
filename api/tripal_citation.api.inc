@@ -387,9 +387,11 @@ function tripal_citation_rank_token_values($token_values) {
   // Rank order (ASCENDING ORDER) by rank each item in a dataset by using the key
   // which is the rank value for a datapoint.
   if (count($token_values) > 1) {
-    $ranks = array_keys($token_values);
+    foreach($token_values as $i => $value) {
+      $ranks[] = array_keys($value)[0];
+    }
 
-    array_multisort($ranks, SORT_ASC, $token_values);
+    array_multisort($ranks, SORT_ASC, SORT_REGULAR, $token_values);
   
     $rank_values = array();
     foreach($token_values as $value) {
