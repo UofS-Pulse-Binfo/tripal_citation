@@ -252,7 +252,7 @@ class TripalCitationTest extends TripalTestCase {
       'Missing token (does not exist) resolved value does not match expected value.');
     
     // Term exists but no value found.
-    $token = 'local:glass';
+    $token = 'hydra:member';
     $citation_template = '{' . $token . '}';
     $citation = tripal_citation_transpose_missing($citation_template, $token);
     // ASSERT: existing term replaced with missing information but show the term name.
