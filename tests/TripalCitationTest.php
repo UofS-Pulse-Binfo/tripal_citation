@@ -256,7 +256,7 @@ class TripalCitationTest extends TripalTestCase {
     $citation_template = '{' . $token . '}';
     $citation = tripal_citation_transpose_missing($citation_template, $token);
     // ASSERT: existing term replaced with missing information but show the term name.
-    $this->assertEquals($citation, '[MISSING INFORMATION:glass]', 
+    $this->assertEquals($citation, '[MISSING INFORMATION:member]', 
       'Missing token (no data) resolved value does not match expected value.');
 
     
