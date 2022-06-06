@@ -1,3 +1,6 @@
+![citation](https://user-images.githubusercontent.com/15472253/172239380-b8f13ce9-c7a6-40a2-9577-968484af341c.gif)
+
+
 # Tripal Citation
 
 Tripal Fields specific to providing automated citations for data based on properties + publications
