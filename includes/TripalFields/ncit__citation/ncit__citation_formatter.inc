@@ -63,11 +63,14 @@ class ncit__citation_formatter extends TripalFieldFormatter {
     
     // Flag that a completed citation coming off a publication (pub field)
     // has been found and used instead of citation template (if preferred).
-    $citation_found = 0;
+    $citation_found = 0; 
 
     // Inspect citaion settings variable and see if this content type has 
     // citation template set.
     if ($items[0]['value'] && !empty($citation_template)) {    
+      // All dataset for this entity keyed by property type token.
+      $tokens_dataset = $items[0]['value']['hydra:member'];
+      
       // Prepare array of property types to inspect for tokens based
       // on the settings with regards to preference to publication.
       if ($settings['prefer_publication']) {
@@ -115,8 +118,6 @@ class ncit__citation_formatter extends TripalFieldFormatter {
       $tokens_template = tripal_citation_get_tokens($citation_template);
 
       if (count($tokens_template) > 0 && $citation_found == 0) { 
-        // All dataset for this entity keyed by property type token.
-        $tokens_dataset = $items[0]['value']['hydra:member'];
         // Citation gets the template, save raw copy in the
         // event nothing was transposed and final process could
         // reference this copy for missing terms.
