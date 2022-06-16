@@ -58,7 +58,7 @@ This configuration becomes available when Tripal Citation Custom Field is attach
 
 [See Tripal Citation Content Type Configuration](https://user-images.githubusercontent.com/15472253/174170131-38c20be4-6995-4d51-bf70-0097bda028e6.png)
 
-**`Citation Template`** <br/> This setting will define a set of tokens in the form of {CV NAME:CVTERM NAME}, also called cvterm tokens, which corresponds to a value in a chado table. Apart from cvterm tokens, the following non-cvterm tokens are supported.
+**`Citation Template`** <br/> This setting will define a text template with set of tokens in the form of {CV NAME:CVTERM NAME}, also called cvterm tokens, which corresponds to a value in a chado table. Apart from cvterm tokens, the following non-cvterm tokens are supported.
 
 Examples: {local:authors}, {ncit:citation}
 
