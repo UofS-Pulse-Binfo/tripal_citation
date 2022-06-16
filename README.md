@@ -52,10 +52,11 @@ Tripal Citation module provides predefined style options to customize overall ap
 ![image](https://user-images.githubusercontent.com/15472253/174156143-834c4d62-e91f-4802-b4a9-f5f39ab07297.png)
 
 
-### Configure Citation Template 
+### Configure Citation Template
+
 This configuration becomes available when Tripal Citation Custom Field is attached to a content type.
 
-[See Tripal Citation Content Type Configuration](https://user-images.githubusercontent.com/15472253/174160067-3e9e9728-426a-44a5-8385-307ca11e4180.png)
+[See Tripal Citation Content Type Configuration](https://user-images.githubusercontent.com/15472253/174170131-38c20be4-6995-4d51-bf70-0097bda028e6.png)
 
 **`Citation Template`** <br/> This setting will define a set of tokens in the form of {CV NAME:CVTERM NAME}, also called cvterm tokens, which corresponds to a value in a chado table. Apart from cvterm tokens, the following non-cvterm tokens are supported.
 
