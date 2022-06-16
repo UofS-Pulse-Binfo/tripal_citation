@@ -104,10 +104,10 @@ function tripal_citation_get_publication($record_id, $source_table) {
  */
 function tripal_citation_get_publication_column($publication, $column = 'miniref') {
   // This is formatted like other property using tripal_citation:pub_column as the
-  // token and id and value as rank and value respectively.
+  // token and id and value as rank and value respectively. Latest first.
   $publ_sql = "
-    SELECT 'tripal_citation:pub_column' AS token, %s AS token_value, pub_id AS token_rank 
-    FROM {pub} WHERE pub_id IN (:publication) ORDER BY pub_id ASC
+    SELECT 'tripal_citation:pub_column' AS token, %s AS token_value, pyear AS token_rank 
+    FROM {pub} WHERE pub_id IN (:publication) ORDER BY pyear DESC LIMIT 1
   ";
 
   $publ_sql = sprintf($publ_sql, $column);
@@ -124,48 +124,37 @@ function tripal_citation_get_publication_column($publication, $column = 'miniref
  * @param $source_table
  *   String, table name of the source relation where the record resides.
  *   For example, if the entity is project, source table is chado.project.
- *   This will be used to construct connecting table tablename + _feature.
+ *   This will be used to construct connecting table analysis + tablename.
+ *   Default to: feature.
  * 
  * @return array
- *   Analysis (feature id) after establishing analysis
- *   record relationship - table name + _feature - analysis.
+ *   Analysis (analysis id) after establishing analysis
+ *   record relationship - table name + analysis.
  */
-function tripal_citation_get_analysis($record, $source_table) {
-  // From chado schema diagram.
-  // The following tables support project connection.
-  // stock_feature and project_feature.
+function tripal_citation_get_analysis($record_id, $source_table = 'feature') {
+  // Analysis for the following source table only.
   $table_features = array(
-    'stock_feature',  // Table connection: stock.
-    'project_feature' // Table connection: project.
+    'feature',
   );
 
-  // Table connection feature table.
-  $table_feature = $source_table . '_feature';
-  // Foreign key connecting to the source table.
-  $table_feature_id = $source_table . '_id';
   $analysis = 0;
 
   // Source table - Source Table_feature - analysisfeature - analysis.
-  if (in_array($table_feature, $table_features)) {
+  if (in_array($source_table, $table_features)) {
+    // Table connection feature table.
+    $table_feature = 'analysis' . $source_table;
+    // Foreign key connecting to the source table.
+    $table_feature_id = $source_table . '_id';
+  
     // Table has connection.
-    if (chado_table_exists($table_feature) && chado_table_exists('analysisfeature')) {
+    if (chado_table_exists($table_feature)) {
       // Table exists.
-      $feat_sql = "SELECT feature_id FROM {%s} WHERE %s = :record_id ORDER BY feature_id ASC";
-      $feat_sql = sprintf($feat_sql, $table_feature, $table_feature_id); 
-      
-      // All related feature.
-      $result = chado_query($feat_sql, array(':record_id' => $record_id));
-      if ($result->rowCount() > 0) {
-        $feature = $result->fetchCol();
+      $analysis_sql = "SELECT analysis_id FROM {%s} WHERE %s = :record_id ORDER BY analysis_id ASC";
+      $analysis_sql = sprintf($analysis_sql, $table_feature, $table_feature_id); 
 
-        $a = chado_query(
-          "SELECT analysis_id FROM {analysisfeature} WHERE feature_id IN (:feature_id)",
-          array(':feature_id' => $feature)
-        );
-         
-        // Analysis ID.
-        $analysis = ($a->rowCount() > 0) ? $a->fetchCol() : 0;
-      }
+      // All analysis.
+      $result = chado_query($analysis_sql, array(':record_id' => $record_id));
+      $analysis = ($result->rowCount() > 0) ? $result->fetchCol() : 0;
     }
   }
 

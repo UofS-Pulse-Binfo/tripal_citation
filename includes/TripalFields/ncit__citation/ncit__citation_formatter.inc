@@ -49,6 +49,7 @@ class ncit__citation_formatter extends TripalFieldFormatter {
    *    hook_field_formatter_view() function.
    */
   public function view(&$element, $entity_type, $entity, $langcode, $items, $display) {
+
     // System variables (with default key) defined in hook_bundle_instances_info().
     // @see TripalFields/tripal_citation.fields.inc.
     $display = $this->instance['display']['default'];
@@ -177,23 +178,25 @@ class ncit__citation_formatter extends TripalFieldFormatter {
           }
         }      
       }
+      
+      // # FINALLY, ANY OVERRIDE TITLE?
+      // Apply template to citation using style set in configuration.
+      $override = (trim($settings['title']) == '') ? array() : array('title' => $settings['title']);
+      $markup = tripal_citation_theme_citation($citation, $override);
+    
+      $module_path = drupal_get_path('module', 'tripal_citation');
+    
+      if (trim($citation) != '') {
+        $element[0] = array(
+          '#type' => 'markup',
+          '#markup' => $markup,
+          '#attached' => array(
+            'css' => array($module_path . '/theme/style/style-citation.css'),
+            'js'  => array($module_path . '/theme/script/script-copy-citation.js')
+          )
+        );
+      }
     }
-
-    // # FINALLY, ANY OVERRIDE TITLE?
-    // Apply template to citation using style set in configuration.
-    $override = (trim($settings['title']) == '') ? array() : array('title' => $settings['title']);
-    $markup = tripal_citation_theme_citation($citation, $override);
-    
-    $module_path = drupal_get_path('module', 'tripal_citation');
-    
-    $element[0] = array(
-      '#type' => 'markup',
-      '#markup' => $markup,
-      '#attached' => array(
-        'css' => array($module_path . '/theme/style/style-citation.css'),
-        'js'  => array($module_path . '/theme/script/script-copy-citation.js')
-      )
-    );
 
     return $element;
   }

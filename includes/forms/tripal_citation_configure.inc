@@ -74,7 +74,7 @@ function tripal_citation_configure_form($form, &$form_state) {
     // Render a citation with title text.
     // Example citation has no title and control and is using banner style.
     $markup = tripal_citation_theme_citation($example_citation, 
-      array('style' => 'banner', 'title' => 'This is an example title text', 'control' => 'none')
+      array('style' => $default_style, 'title' => 'This is an example title text', 'control' => 'none')
     );
 
     
@@ -104,7 +104,7 @@ function tripal_citation_configure_form($form, &$form_state) {
     // Render cittion (matching the selected style) with copy button.
     // Example citation has no title, is using banner style and copy button on.
     $markup = tripal_citation_theme_citation($example_citation, 
-      array('style' => 'banner', 'title' => '', 'control' => 'copy')
+      array('style' => $default_style, 'title' => '', 'control' => 'copy')
     );
 
     $form['configure_controls']['add_copy'] = array(

@@ -12,6 +12,17 @@ class TripalCitationTest extends TripalTestCase {
    * Test Tripal Citation module.
    */
   public function testCitation() {  
+    // TESTS:
+    /**
+     * MAIN - install routine and system variables creation.
+     * 1. Resolve CVTERM tokens in citation template.
+     * 2. Test prefer publication over citation template.
+     * 3. Test ranking ordering of multiple values in a token.
+     * 4. Test missing information and missing value.
+     * 5. Test content type level title override (override global title).
+     * 6. Test analysis connection.
+     */
+
     // INSTALL:
     
     // Module.
@@ -94,8 +105,8 @@ class TripalCitationTest extends TripalTestCase {
         ? tripal_citation_get_property($project, 'project') : 0;
 
 
-        // # ANALYSIS:
-      // Get entity analysis connection.
+      // # ANALYSIS:
+      // Get entity analysis connection. NO ANALYSIS HERE.
       $analysis = tripal_citation_get_analysis(2, $table_name);
       // In chado.pub and properties in pubprop.
       $properties['tripal_citation:analysis'] = ($analysis) 
@@ -260,7 +271,7 @@ class TripalCitationTest extends TripalTestCase {
       'Missing token (no data) resolved value does not match expected value.');
 
     
-      // 5. TEST: configuration title override.
+    // 5. TEST: configuration title override.
     // Set global title, and override title on content type level setting.
     $set_title = 'GLOBAL TITLE';
     $title = variable_set('tripal_citation_title', $set_title);
@@ -271,5 +282,41 @@ class TripalCitationTest extends TripalTestCase {
     $text = strip_tags($markup);
     $replaced = (str_contains($text, $override_title)) ? TRUE : FALSE;
     $this->assertTrue($replaced, 'Could not replace title text with override title');
+
+    
+    // 6. TEST: analysis connection.  
+    // CITATION SETTINGS:
+    $citation_template = '{local:analysis author}';
+    $citation_prefer_project = 0;
+    $citation_date = 'short';
+    $citation_title = '';
+
+    // # ANALYSIS:
+    // Get entity analysis connection.
+    $my_feature = chado_query("SELECT feature_id, name FROM {feature} WHERE name = :name LIMIT 1",
+      array(':name' => 'MY FEATURE'))
+      ->fetchObject();
+    
+    // ASSERT: feature MY FEATURE created at seeder method was found before using it. 
+    $this->assertEquals($seeder->my_analysisfeature['feature']['name'], $my_feature->name, 
+      'Feature MY FEATURE is not found.');
+    
+    $analysis = tripal_citation_get_analysis($my_feature->feature_id, 'feature');
+    // In chado.analysis and properties in analysisprop.
+    $properties['tripal_citation:analysis'] = ($analysis) 
+      ? tripal_citation_get_property($analysis, 'analysis') : 0;
+    
+    $tokens_template = tripal_citation_get_tokens($citation_template);
+    foreach($tokens_template as $token) {
+      $values = tripal_citation_prepare_values($properties['tripal_citation:analysis']);
+      $dataset = $values[ $token ];
+
+      $token_value = tripal_citation_rank_token_values($dataset);
+      $citation = tripal_citation_transpose_cvterm($citation_template, $token, $token_value);
+    }
+    
+    // ASSERT: that the final citation is the analysis author setup in seeder.
+    $this->assertEquals($citation, $seeder->my_analysisfeature['citations']['analysis author'][0]['name'], 
+      'Citation (analysis connection} does not match expected citation.');
   }
 }

@@ -114,8 +114,8 @@ class ncit__citation extends TripalField {
     
     // Establish table used by the content type and 
     // the record id number.
-    $table_name = $entity->chado_record->tablename;
-    $table_id   = $table_name . '_id';
+    $source_table = $entity->chado_record->tablename;
+    $table_id   = $source_table . '_id';
     $record_id  = $entity->chado_record->{$table_id};
     
     $properties = array();
@@ -124,7 +124,7 @@ class ncit__citation extends TripalField {
 
     // # PUBLICATIONS:
     // Get entity publications connection.
-    $publication = tripal_citation_get_publication($record_id, $table_name);
+    $publication = tripal_citation_get_publication($record_id, $source_table);
     // In chado.pub and properties in pubprop.
     $properties['tripal_citation:publication'] = ($publication) 
       ? tripal_citation_get_property($publication, 'pub') : 0;
@@ -136,7 +136,7 @@ class ncit__citation extends TripalField {
       
     // # PROJECTS:
     // Get entity project connection.
-    $project = tripal_citation_get_project($record_id, $table_name);
+    $project = tripal_citation_get_project($record_id, $source_table);
     // In chado.project and properties in projectprop.
     $properties['tripal_citation:project'] = ($project)
       ? tripal_citation_get_property($project, 'project') : 0;
@@ -144,16 +144,16 @@ class ncit__citation extends TripalField {
 
     // # ANALYSIS:
     // Get entity analysis connection.
-    $analysis = tripal_citation_get_analysis($record_id, $table_name);
-    // In chado.pub and properties in pubprop.
+    $analysis = tripal_citation_get_analysis($record_id, $source_table);
+    // In feature - analysisfeature - analysisprop.
     $properties['tripal_citation:analysis'] = ($analysis) 
-      ? tripal_citation_get_property($record_id, 'analysis') : 0;
+      ? tripal_citation_get_property($analysis, 'analysis') : $analysis;
 
     
     // # PROPERTIES:
     // Get entity property from prop table.
     // In chado.tablename + prop table of the table.
-    $prop = tripal_citation_get_property($record_id, $table_name);
+    $prop = tripal_citation_get_property($record_id, $source_table);
     $properties['tripal_citation:property'] = ($prop) ? $prop : 0;
     
     ///

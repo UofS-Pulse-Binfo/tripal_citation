@@ -14,11 +14,30 @@ class TripalCitationSeeder extends Seeder
       'publication' => 'Lorem Ipsum, Dolor Sit Amet, Consectetur Adipiscing Elit et al. Copyright 2022-2023', 
       'authors' => 'Lorem Ipsum, Dolor Sit Amet, Consectetur Adipiscing Elit et al', 
       'writers' => array(
+        // Test if property is more than one, therefore apply csv formatting
+        // but the last item should use and not comma.
         array('name' => 'Mr. Luke S.', 'rank' => 5),
         array('name' => 'Mr. Sophia G.', 'rank' => 0),
         array('name' => 'Mr. Benjamin F.', 'rank' => 27),
       ),
       'lead writer' => 'Mr. Jacob Z.',
+    )
+  );
+
+  public $my_analysisfeature = array(
+    'analysis' => array(
+      'name' => 'MY ANALYSIS',
+    ),
+    'feature' => array(
+      'name' => 'MY FEATURE',
+    ),
+    'citations' => array(
+      'analysis author' => array(
+        // Test if property is single value, therefore no csv formatting.
+        array('name' => 'Dr. Helen S.', 'rank' => 3)
+      ),
+      // Term used to create a feature (feature.type_id).
+      'feature' => ''
     )
   );
 
@@ -59,9 +78,23 @@ class TripalCitationSeeder extends Seeder
       $id[ $term ] = $i->cvterm_id;
     }
 
+    unset($terms);
+    $terms = array_keys($this->my_analysisfeature['citations']);
+    foreach($terms as $term) {
+      $i = tripal_insert_cvterm(array(
+        'name' => $term,
+        'definition' => 'define',
+        'accession' => $term,
+        'cv_name' => 'local',
+        'db_name' => 'local',
+      ));
+
+      $id[ $term ] = $i->cvterm_id;
+    }
+
     // STOCK:
     // CREATE A STOCK RECORD.
-    // Create a stock record in chado.stock the create following connections
+    // Create a stock record in chado.stock then create following connections
     // * A publication in chado.pub linked via chado.stock_pub table
     // * A project in chado.project linked via chado.project_stock table
     // * A direct property in chado.stockprop table. 
@@ -141,20 +174,52 @@ class TripalCitationSeeder extends Seeder
       'value' => $this->my_stock['citations']['lead writer'],
       'rank' => 0
     ));
-
-    /* ERROR: currval of sequence "stock_feature_stock_feature_id_seq" is not yet defined in this session
-    // Sample feature id.
-    $feature = chado_query("SELECT feature_id FROM {feature} LIMIT 1")
-      ->fetchField();
     
-    chado_insert_record('stock_feature', array(
-      'feature_id' => $feature,
-      'stock_id' => $my_stock['stock_id'],
-      'type_id' => $accession,
-      'rank' => 5
-    )); */
+    // ANALYSIS
+    // Create feature record in chado.feature then create following connections
+    // * An entry in chado.analysis
+    // * An entry in chado.analysisfeature linked via foreign key feature_id and analysis_id (created above)
+    // * An entry in analysisprop where the analysis_id is the id created in item 2.
+    //   and the value is analysis author in the term array above.
+    $my_analysis = chado_insert_record('analysis', array(
+      'name' => $this->my_analysisfeature['analysis']['name'],
+      'description' => 'this is a test analysis connected to MY FEATURE',
+      'program' => 'Program Search',
+      'programversion' => 'v1.3',
+      'algorithm' => 'Fibonacci Search',
+      'sourcename' => 'Source Entity',
+      'sourceversion' => 'v1.1',
+      'sourceuri' => 'programsearch-test.ca',
+      'timeexecuted' => '2014-03-03 11:50:04.747584'
+    ));
 
-      
+    $my_feature = chado_insert_record('feature', array(
+      'dbxref_id' => 1,
+      'organism_id' => $organism['organism_id'],
+      'name' => $this->my_analysisfeature['feature']['name'],
+      'uniquename' => 'MY FEATURE UNIQUENAME',
+      'residues' => 'AAAAACCCCCGGGGG',
+      'seqlen' => 100,
+      'md5checksum' => '82839238hf',
+      'type_id' => $id['feature'],
+      'is_analysis' => 1,
+      'is_obsolete' => 0,
+      'timeaccessioned' => '2011-11-10 09:50:17.927864',
+      'timelastmodified' => '2011-11-10 09:50:17.927864',
+    ));
+
+    chado_insert_record('analysisfeature', array(
+      'feature_id' => $my_feature['feature_id'],
+      'analysis_id' => $my_analysis['analysis_id'],
+    ));
+
+    chado_insert_record('analysisprop', array(
+      'analysis_id' => $my_analysis['analysis_id'],
+      'type_id' => $id['analysis author'],
+      'value' => $this->my_analysisfeature['citations']['analysis author'][0]['name'],
+      'rank' => $this->my_analysisfeature['citations']['analysis author'][0]['rank']
+    ));
+    
     return $data;
   }
 }
