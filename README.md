@@ -69,7 +69,7 @@ Examples: {local:authors}, {ncit:citation}
 |{CURRENT_URL} | token resolves to the current URL (page) the citation is attached or viewed. |
 
 
-**`Date Format`** <br/> {CURRENT_DATE} token output can be formatted using these settings. Each option in this field shows an example to evaluate the format to match desired format.
+**`Date Format`** <br/> {CURRENT_DATE} token output can be formatted through this setting. Each option in this field shows an example to evaluate the format to match desired format.
 
 **`Alternate Title`** <br/> Module configuration for citation title that applies to every citation instance can be overridden by this alternate citation text setting. Title text set to setting applies only to the content type.
 
