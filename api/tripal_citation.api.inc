@@ -352,7 +352,9 @@ function tripal_citation_transpose_missing($template, $token) {
   $term = tripal_get_cvterm(array('name' => $cvterm_name, 'cv_id' => array('name' => $cv)));
 
   // Found but no data else just missing token.
-  $token_value = ($term) ? '[MISSING INFORMATION:'. $cvterm_name .']' : '[MISSING INFORMATION]';
+  // $token_value = ($term) ? '[MISSING INFORMATION:'. $cvterm_name .']' : '[MISSING INFORMATION]';
+  // Collapse all missing information.
+  $token_value = '';
   // Restore token to expected format as entered in template field
   // and replace accordingly.
   $token = '{' . $token . '}';

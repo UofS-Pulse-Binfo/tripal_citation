@@ -259,7 +259,7 @@ class TripalCitationTest extends TripalTestCase {
     $citation_template = '{' . $token . '}';
     $citation = tripal_citation_transpose_missing($citation_template, $token);
     // ASSERT: non-existent term replaced with missing information token.
-    $this->assertEquals($citation, '[MISSING INFORMATION]', 
+    $this->assertEquals($citation, '', 
       'Missing token (does not exist) resolved value does not match expected value.');
     
     // Term exists but no value found.
