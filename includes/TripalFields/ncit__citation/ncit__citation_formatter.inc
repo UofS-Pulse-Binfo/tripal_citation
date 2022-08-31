@@ -81,7 +81,8 @@ class ncit__citation_formatter extends TripalFieldFormatter {
         $property_set = array(          
           'tripal_citation:publication', 
           'tripal_citation_project', 
-          'tripal_citation_analysis'
+          'tripal_citation_analysis',
+          'tripal_citation:property'
         );
         
         // Exception, here citation is completed.
