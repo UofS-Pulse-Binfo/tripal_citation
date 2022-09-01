@@ -168,14 +168,26 @@ class ncit__citation_formatter extends TripalFieldFormatter {
           array('current_date' => trim($settings['date']))
         );
 
-        // # Citation is almost in its final form. Inspect any missing
-        // Token and transpose accordingly.
+        // # Citation is almost in its final form. Inspect any missing and field tokens,
+        // transpose accordingly.
         $tokens_template = array();
         $tokens_template = tripal_citation_get_tokens($citation);
         if (count($tokens_template) > 0) {
-          // Still has tokens, got to be a Missing token.
+          // Still has tokens, got to be a Missing token, but first
+          // check if it is a field-based token.
           foreach($tokens_template as $token) {
-            $citation = tripal_citation_transpose_missing($citation, $token);
+            if (isset($entity->{"$token"}) && $entity->{"$token"} != '') {
+               // A field token.
+
+               // This contains raw value (array) of the field.
+               // @see function to see which array element is returned.
+               $field_value = $entity->{"$token"};
+               $citation = tripal_citation_transpose_field($citation, $token, $field_value);
+            }
+            else {
+              // Got to be missing!
+              $citation = tripal_citation_transpose_missing($citation, $token);
+            }
           }
         }      
       }
