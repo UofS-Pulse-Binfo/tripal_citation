@@ -372,7 +372,7 @@ function tripal_citation_transpose_field($template, $token, $field_value) {
     }
   }
   elseif (is_array($field_value['und'][0]['value'])) {
-    $safe_field_value = reset($field_value['und'][0]['value'])[0];
+    $safe_field_value = reset($field_value['und'][0]['value']);
   }
 
   $result = str_replace($token, $safe_field_value, $template);
