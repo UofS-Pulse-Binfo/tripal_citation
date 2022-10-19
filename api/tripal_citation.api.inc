@@ -337,6 +337,50 @@ function tripal_citation_transpose_cvterm($template, $token, $token_value) {
 }
 
 /**
+ * Transpose entity field tokens.
+ * Entity field can be used as token by using the machine name. Entity object
+ * captures values for a record and can be accessed in the object using
+ * the machine name under und / 0 element.
+ * 
+ * @param $template
+ *   String, citation template as entered in citation template field settings.
+ * @param $token
+ *   String, token to replace (contains machine name).
+ * @param $field_value
+ *   Array, Entity value mathing the machine name. Safe value found under
+ *   und / 0.
+ * 
+ * @return string
+ *   Same citation template with all entity field token resolved.
+ */
+function tripal_citation_transpose_field($template, $token, $field_value) {
+  // Restore token to expected format as entered in template field.
+  $token = '{' . $token . '}';
+
+  if ($field_value['und'][0]['safe_value']) {
+    $safe_field_value = $field_value['und'][0]['safe_value'];
+  }
+  elseif (is_string($field_value['und'][0]['value'])) {
+    $safe_field_value = $field_value['und'][0]['value'];
+
+    // Might be a timestamp. Check data type:
+    // Anticipate timestamp and convert it to a nicer date and time format.
+    if ((isset($field_value['und'][0]['date_type']) && $field_value['und'][0]['date_type'] == 'datetime')
+      || DateTime::createFromFormat('Y-m-d H:i:s',  $safe_field_value) !== false) {
+
+      $safe_field_value = format_date(strtotime($safe_field_value), 'custom', 'Y M d');
+    }
+  }
+  elseif (is_array($field_value['und'][0]['value'])) {
+    $safe_field_value = reset($field_value['und'][0]['value']);
+  }
+
+  $result = str_replace($token, $safe_field_value, $template);
+
+  return $result;
+}
+
+/**
  * Transpose missing tokens.
  * 
  * @param $template
